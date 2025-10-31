@@ -56,6 +56,16 @@ def level(level_id):
     if level_id < 1 or level_id > 5:
         return redirect(url_for('leaderboard'))
     
+    username = session['username']
+    
+    # Kontrollera att alla tidigare nivåer är klara (förutom nivå 1)
+    if level_id > 1:
+        # Kontrollera om alla nivåer 1 till level_id-1 är klara
+        for prev_level in range(1, level_id):
+            if not db.has_completed_level(username, prev_level):
+                # Hitta första oklara nivå och omdirigera dit
+                return redirect(url_for('level', level_id=prev_level))
+    
     # Problembeskrivningar
     problems = {
         1: {
@@ -94,7 +104,7 @@ def level(level_id):
     if not problem:
         return redirect(url_for('leaderboard'))
     
-    return render_template('level.html', problem=problem, level_id=level_id, username=session['username'])
+    return render_template('level.html', problem=problem, level_id=level_id, username=username)
 
 
 @app.route("/submit/<int:level_id>", methods=['POST'])
@@ -105,6 +115,48 @@ def submit(level_id):
     
     if level_id < 1 or level_id > 5:
         return redirect(url_for('leaderboard'))
+    
+    # Kontrollera att tävlingen är aktiv
+    competition_state = db.get_competition_state()
+    if not competition_state.get("is_active", False):
+        # Hämta problembeskrivning för felmeddelande
+        problems = {
+            1: {
+                "title": "Nivå 1: Räkna vokaler",
+                "description": "Räkna antalet vokaler (a, e, i, o, u, y, å, ä, ö) i texten: 'Programmering är roligt!'",
+                "input_type": "number",
+                "placeholder": "Ange antal vokaler"
+            },
+            2: {
+                "title": "Nivå 2: Summera heltal",
+                "description": "Summera alla heltal i denna text:\n\nThere are 42 apples in the basket. We found -5 rotten ones, so we removed them.\nThe remaining 37 apples are good quality.\nLater, we added 15 more apples from another batch.\nNow we have 52 total apples.\nBut wait, 8 apples were eaten, leaving us with 44.\nWe sold 12 of them for 3 dollars each, making 36 dollars profit.\nThe final count is 32 apples remaining in storage.\nEarlier today, there were -3 damaged apples that we discarded.\nTotal apples processed: 29 + 15 - 8 + 12 - 3 = 45.",
+                "input_type": "number",
+                "placeholder": "Ange summan"
+            },
+            3: {
+                "title": "Nivå 3: Genomsnitt per kategori",
+                "description": "Beräkna genomsnitt per kategori från denna CSV:\n\nA,3\nA,4\nA,5\nB,7\nB,7\nB,8\nC,10\nC,20\nD,1\nD,2\nD,3\n\nSvara i format: A=4.0,B=7.33,C=15.0,D=2.0",
+                "input_type": "text",
+                "placeholder": "A=4.0,B=7.33,C=15.0,D=2.0"
+            },
+            4: {
+                "title": "Nivå 4: Caesar-chiffer",
+                "description": "Dekryptera denna Caesar-chiffer (shift 7): 'Olssv, Dvysk!'",
+                "input_type": "text",
+                "placeholder": "Ange dekrypterad text"
+            },
+            5: {
+                "title": "Nivå 5: JSON-analys",
+                "description": "Givet denna JSON-data:\n\n{\n  \"items\": [\n    {\"name\": \"A\", \"score\": 10},\n    {\"name\": \"B\", \"score\": 25},\n    {\"name\": \"C\", \"score\": 15}\n  ]\n}\n\nBeräkna genomsnittlig poäng och hitta topprestationen.\nSvara i format: avg=16.67,top=B",
+                "input_type": "text",
+                "placeholder": "avg=16.67,top=B"
+            }
+        }
+        return render_template('level.html', 
+                             problem=problems.get(level_id), 
+                             level_id=level_id, 
+                             username=session['username'],
+                             error="Tävlingen är inte aktiv. Vänta tills tävlingen startar.")
     
     answer = request.form.get('answer', '').strip()
     if not answer:
@@ -221,6 +273,16 @@ def admin():
         return "API-nyckel krävs", 403
     
     competition_state = db.get_competition_state()
+    
+    # Formatera start_time till läsbart format om tävlingen är aktiv
+    if competition_state.get("is_active") and competition_state.get("start_time", 0) > 0:
+        import datetime
+        start_time_ts = competition_state.get("start_time")
+        start_time_formatted = datetime.datetime.fromtimestamp(start_time_ts).strftime('%Y-%m-%d %H:%M:%S')
+        competition_state["start_time_formatted"] = start_time_formatted
+    else:
+        competition_state["start_time_formatted"] = None
+    
     return render_template('admin.html', state=competition_state)
 
 
@@ -271,6 +333,11 @@ def update():
     
     if not isinstance(ms, int) or ms < 0:
         return jsonify({"error": "Ogiltig tid"}), 400
+    
+    # Kontrollera att tävlingen är aktiv
+    competition_state = db.get_competition_state()
+    if not competition_state.get("is_active", False):
+        return jsonify({"error": "Tävlingen är inte aktiv"}), 403
     
     improved = db.save_result(user, level, ms)
     

@@ -100,7 +100,12 @@ def load_leaderboard() -> List[Dict[str, Any]]:
     """
     Läser in alla resultat och bygger leaderboard-strukturen.
     Sorterar efter: högsta nivå → lägsta totaltid → tidigaste tidsstämpel.
+    Tid visar nu tid från tävlingsstart till inlämning istället för exekveringstid.
     """
+    # Hämta tävlingsstatus för att få start_time
+    competition_state = get_competition_state()
+    start_time = competition_state.get("start_time", 0)
+    
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
@@ -121,11 +126,18 @@ def load_leaderboard() -> List[Dict[str, Any]]:
                 "max_level": 0
             }
         
+        # Beräkna tid från tävlingsstart till inlämning (i millisekunder)
+        if start_time > 0:
+            time_from_start_ms = (ts - start_time) * 1000
+        else:
+            # Om tävlingen inte startat, använd 0 (skulle inte hända om tävling är aktiv)
+            time_from_start_ms = 0
+        
         user_data[user]["levels"][str(level)] = {
-            "ms": best_ms,
+            "ms": time_from_start_ms,
             "ts": ts
         }
-        user_data[user]["total_ms"] += best_ms
+        user_data[user]["total_ms"] += time_from_start_ms
         user_data[user]["max_level"] = max(user_data[user]["max_level"], level)
     
     # Konvertera till lista och sortera
@@ -166,6 +178,21 @@ def set_competition_state(is_active: bool, start_time: int = 0):
     )
     conn.commit()
     conn.close()
+
+
+def has_completed_level(user: str, level: int) -> bool:
+    """Kontrollerar om en användare har slutfört en specifik nivå."""
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute(
+        "SELECT COUNT(*) FROM results WHERE user = ? AND level = ?",
+        (user, level)
+    )
+    count = cursor.fetchone()[0]
+    conn.close()
+    
+    return count > 0
 
 
 def submit_answer(user: str, level: int, answer: str) -> bool:

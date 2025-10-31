@@ -103,7 +103,7 @@
         </div>
         <p>
             {% if state.is_active %}
-                Startad: {{ state.start_time|int|timestamp|strftime('%Y-%m-%d %H:%M:%S') }}
+                Startad: {{ state.start_time_formatted }}
             {% else %}
                 Tävlingen är inte startad
             {% endif %}
