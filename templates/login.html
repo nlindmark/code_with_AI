@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Code with AI{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 0 auto;">
+    <h2 style="text-align: center; margin-bottom: 30px; color: #333;">Anmäl dig till tävlingen</h2>
+    
+    {% if error %}
+    <div class="alert alert-error">
+        {{ error }}
+    </div>
+    {% endif %}
+    
+    <form method="POST">
+        <div class="form-group">
+            <label for="username">Användarnamn:</label>
+            <input type="text" 
+                   id="username" 
+                   name="username" 
+                   class="form-control" 
+                   placeholder="Ange ditt användarnamn"
+                   required
+                   autofocus>
+            <small style="color: #666; font-size: 0.9em;">
+                Endast bokstäver och siffror tillåtna
+            </small>
+        </div>
+        
+        <button type="submit" class="btn" style="width: 100%;">
+            Starta tävling
+        </button>
+    </form>
+    
+    <div style="margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 5px;">
+        <h3 style="margin-bottom: 15px; color: #333;">Så här fungerar det:</h3>
+        <ol style="padding-left: 20px; color: #666;">
+            <li>Ange ditt användarnamn ovan</li>
+            <li>Lös de 5 nivåerna i ordning</li>
+            <li>Varje nivå har ett problem att lösa</li>
+            <li>Ange ditt svar i rutan</li>
+            <li>Se din ranking på leaderboard</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}
+
+

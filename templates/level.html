@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}{{ problem.title }} - Code with AI{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <h2 style="color: #333; margin-bottom: 20px;">{{ problem.title }}</h2>
+    
+    {% if error %}
+    <div class="alert alert-error">
+        {{ error }}
+    </div>
+    {% endif %}
+    
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 30px;">
+        <h3 style="margin-bottom: 15px; color: #333;">Problembeskrivning:</h3>
+        <div style="white-space: pre-line; font-family: 'Courier New', monospace; background-color: white; padding: 15px; border-radius: 3px; border: 1px solid #ddd;">
+{{ problem.description }}
+        </div>
+    </div>
+    
+    <form method="POST" action="{{ url_for('submit', level_id=level_id) }}">
+        <div class="form-group">
+            <label for="answer">Ditt svar:</label>
+            <input type="{{ problem.input_type }}" 
+                   id="answer" 
+                   name="answer" 
+                   class="form-control" 
+                   placeholder="{{ problem.placeholder }}"
+                   required
+                   autofocus>
+        </div>
+        
+        <div style="display: flex; gap: 15px; margin-top: 30px;">
+            <button type="submit" class="btn">
+                Skicka svar
+            </button>
+            
+            <a href="{{ url_for('leaderboard') }}" class="btn btn-secondary">
+                Visa leaderboard
+            </a>
+        </div>
+    </form>
+    
+    <div style="margin-top: 30px; padding: 15px; background-color: #e3f2fd; border-radius: 5px; border-left: 4px solid #2196f3;">
+        <strong>Tips:</strong> 
+        {% if level_id == 1 %}
+        Räkna noggrant alla vokaler, både stora och små bokstäver.
+        {% elif level_id == 2 %}
+        Hitta alla heltal i texten, både positiva och negativa.
+        {% elif level_id == 3 %}
+        Beräkna genomsnittet för varje kategori separat.
+        {% elif level_id == 4 %}
+        Flytta varje bokstav 7 steg bakåt i alfabetet.
+        {% elif level_id == 5 %}
+        Beräkna genomsnittet av alla poäng och hitta den högsta.
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code with AI - Leaderboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        .rank {
+            font-weight: bold;
+            color: #666;
+            width: 60px;
+        }
+        .time {
+            font-family: 'Courier New', monospace;
+            color: #2196F3;
+        }
+        .status {
+            color: #666;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏆 Code with AI - Leaderboard</h1>
+    <table id="leaderboardTable">
+        <thead>
+            <tr>
+                <th class="rank">#</th>
+                <th>Namn</th>
+                <th>Nivåer</th>
+                <th>Total tid</th>
+            </tr>
+        </thead>
+        <tbody id="leaderboardBody">
+            <tr>
+                <td colspan="4" style="text-align: center; color: #999;">
+                    Laddar leaderboard...
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="status" id="status">Uppdateras automatiskt var 5:e sekund</div>
+
+    <script>
+        // Funktion för att formatera tid i millisekunder till läsbart format
+        function formatTime(ms) {
+            if (ms < 1000) return ms + " ms";
+            if (ms < 60000) return (ms / 1000).toFixed(2) + " s";
+            return (ms / 60000).toFixed(2) + " min";
+        }
+
+        // Funktion för att uppdatera leaderboard-tabellen
+        function updateLeaderboard() {
+            fetch('/leaderboard')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('leaderboardBody');
+                    
+                    if (data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">Inga resultat ännu</td></tr>';
+                        return;
+                    }
+                    
+                    tbody.innerHTML = data.map((entry, index) => {
+                        return `
+                            <tr>
+                                <td class="rank">${index + 1}</td>
+                                <td>${escapeHtml(entry.user)}</td>
+                                <td>${entry.max_level} / 5</td>
+                                <td class="time">${formatTime(entry.total_ms)}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                    
+                    document.getElementById('status').textContent = 
+                        `Senast uppdaterad: ${new Date().toLocaleTimeString('sv-SE')}`;
+                })
+                .catch(error => {
+                    console.error('Fel vid hämtning av leaderboard:', error);
+                    document.getElementById('status').textContent = 
+                        'Kunde inte hämta leaderboard. Kontrollera att servern körs.';
+                });
+        }
+
+        // Hjälpfunktion för att escape HTML (för säkerhet)
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Uppdatera leaderboard direkt och sedan var 5:e sekund
+        updateLeaderboard();
+        setInterval(updateLeaderboard, 5000);
+    </script>
+</body>
+</html>
+

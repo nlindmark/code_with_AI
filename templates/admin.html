@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Code with AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-panel {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .status-card {
+        background: white;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .status-active {
+        border-color: #28a745;
+        background-color: #d4edda;
+    }
+    
+    .status-inactive {
+        border-color: #dc3545;
+        background-color: #f8d7da;
+    }
+    
+    .status-indicator {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .status-active .status-indicator {
+        color: #28a745;
+    }
+    
+    .status-inactive .status-indicator {
+        color: #dc3545;
+    }
+    
+    .control-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-bottom: 30px;
+    }
+    
+    .stats {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+    
+    .stats h3 {
+        margin-bottom: 15px;
+        color: #333;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 10px;
+        background: white;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+    }
+    
+    .stat-value {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #667eea;
+    }
+    
+    .stat-label {
+        font-size: 0.9em;
+        color: #666;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-panel">
+    <h2 style="text-align: center; margin-bottom: 30px; color: #333;">🎮 Tävlingskontroll</h2>
+    
+    <div class="status-card {% if state.is_active %}status-active{% else %}status-inactive{% endif %}">
+        <div class="status-indicator">
+            {% if state.is_active %}
+                ✅ Tävling aktiv
+            {% else %}
+                ❌ Tävling inaktiv
+            {% endif %}
+        </div>
+        <p>
+            {% if state.is_active %}
+                Startad: {{ state.start_time|int|timestamp|strftime('%Y-%m-%d %H:%M:%S') }}
+            {% else %}
+                Tävlingen är inte startad
+            {% endif %}
+        </p>
+    </div>
+    
+    <div class="control-buttons">
+        {% if not state.is_active %}
+        <button onclick="startCompetition()" class="btn">
+            🚀 Starta tävling
+        </button>
+        {% else %}
+        <button onclick="stopCompetition()" class="btn btn-danger">
+            ⏹️ Stoppa tävling
+        </button>
+        {% endif %}
+        
+        <button onclick="resetData()" class="btn btn-secondary">
+            🗑️ Rensa all data
+        </button>
+    </div>
+    
+    <div class="stats">
+        <h3>Statistik</h3>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value" id="total-users">-</div>
+                <div class="stat-label">Användare</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="total-submissions">-</div>
+                <div class="stat-label">Inlämningar</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="completed-levels">-</div>
+                <div class="stat-label">Genomförda nivåer</div>
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 30px; text-align: center;">
+        <a href="{{ url_for('leaderboard') }}" class="btn btn-secondary">
+            📊 Visa leaderboard
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const API_KEY = '{{ request.headers.get("X-API-Key", "") }}';
+    
+    function startCompetition() {
+        fetch('/admin/start', {
+            method: 'POST',
+            headers: {
+                'X-API-Key': API_KEY,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Tävling startad!');
+                location.reload();
+            } else {
+                alert('Fel: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Fel vid start: ' + error);
+        });
+    }
+    
+    function stopCompetition() {
+        if (confirm('Är du säker på att du vill stoppa tävlingen?')) {
+            fetch('/admin/stop', {
+                method: 'POST',
+                headers: {
+                    'X-API-Key': API_KEY,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Tävling stoppad!');
+                    location.reload();
+                } else {
+                    alert('Fel: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Fel vid stopp: ' + error);
+            });
+        }
+    }
+    
+    function resetData() {
+        if (confirm('Är du säker på att du vill radera ALL data? Detta går inte att ångra!')) {
+            fetch('/reset', {
+                method: 'GET',
+                headers: {
+                    'X-API-Key': API_KEY
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('All data raderad!');
+                    location.reload();
+                } else {
+                    alert('Fel: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Fel vid reset: ' + error);
+            });
+        }
+    }
+    
+    // Ladda statistik
+    function loadStats() {
+        fetch('/api/leaderboard')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('total-users').textContent = data.length;
+                
+                let totalSubmissions = 0;
+                let completedLevels = 0;
+                
+                data.forEach(user => {
+                    totalSubmissions += Object.keys(user.levels).length;
+                    completedLevels += user.max_level;
+                });
+                
+                document.getElementById('total-submissions').textContent = totalSubmissions;
+                document.getElementById('completed-levels').textContent = completedLevels;
+            })
+            .catch(error => {
+                console.error('Fel vid hämtning av statistik:', error);
+            });
+    }
+    
+    // Ladda statistik vid sidladdning
+    loadStats();
+    setInterval(loadStats, 10000); // Uppdatera var 10:e sekund
+</script>
+{% endblock %}
