@@ -17,6 +17,92 @@ API_KEY = os.getenv("API_KEY", "default_secret_key_change_me")
 # Sätt session secret key
 app.secret_key = os.getenv("SECRET_KEY", "change_this_secret_key_in_production")
 
+# Competition configurations
+COMPETITIONS = {
+    1: {
+        "name": "Code with AI - Standard",
+        "description": "Standard 5-level competition",
+        "levels": {
+            1: {
+                "title": "Nivå 1: Räkna vokaler",
+                "description": "Räkna antalet vokaler (a, e, i, o, u, y, å, ä, ö) i texten: 'Programmering är roligt!'",
+                "input_type": "number",
+                "placeholder": "Ange antal vokaler",
+                "expected_answer": "7"
+            },
+            2: {
+                "title": "Nivå 2: Summera heltal",
+                "description": "Summera alla heltal i denna text:\n\nThere are 42 apples in the basket. We found -5 rotten ones, so we removed them.\nThe remaining 37 apples are good quality.\nLater, we added 15 more apples from another batch.\nNow we have 52 total apples.\nBut wait, 8 apples were eaten, leaving us with 44.\nWe sold 12 of them for 3 dollars each, making 36 dollars profit.\nThe final count is 32 apples remaining in storage.\nEarlier today, there were -3 damaged apples that we discarded.\nTotal apples processed: 29 + 15 - 8 + 12 - 3 = 45.",
+                "input_type": "number",
+                "placeholder": "Ange summan",
+                "expected_answer": "363"
+            },
+            3: {
+                "title": "Nivå 3: Genomsnitt per kategori",
+                "description": "Beräkna genomsnitt per kategori från denna CSV:\n\nA,3\nA,4\nA,5\nB,7\nB,7\nB,8\nC,10\nC,20\nD,1\nD,2\nD,3\n\nSvara i format: A=4.0,B=7.33,C=15.0,D=2.0",
+                "input_type": "text",
+                "placeholder": "A=4.0,B=7.33,C=15.0,D=2.0",
+                "expected_answer": "A=4.0,B=7.33,C=15.0,D=2.0"
+            },
+            4: {
+                "title": "Nivå 4: Caesar-chiffer",
+                "description": "Dekryptera denna Caesar-chiffer (shift 7): 'Olssv, Dvysk!'",
+                "input_type": "text",
+                "placeholder": "Ange dekrypterad text",
+                "expected_answer": "Hello, World!"
+            },
+            5: {
+                "title": "Nivå 5: JSON-analys",
+                "description": "Givet denna JSON-data:\n\n{\n  \"items\": [\n    {\"name\": \"A\", \"score\": 10},\n    {\"name\": \"B\", \"score\": 25},\n    {\"name\": \"C\", \"score\": 15}\n  ]\n}\n\nBeräkna genomsnittlig poäng och hitta topprestationen.\nSvara i format: avg=16.67,top=B",
+                "input_type": "text",
+                "placeholder": "avg=16.67,top=B",
+                "expected_answer": "avg=16.67,top=B"
+            }
+        }
+    },
+    2: {
+        "name": "Code with AI - Advanced",
+        "description": "Advanced 5-level competition with harder problems",
+        "levels": {
+            1: {
+                "title": "Nivå 1: Räkna konsonanter",
+                "description": "Räkna antalet konsonanter (alla bokstäver som inte är vokaler) i texten: 'Programmering är roligt!'",
+                "input_type": "number",
+                "placeholder": "Ange antal konsonanter",
+                "expected_answer": "15"
+            },
+            2: {
+                "title": "Nivå 2: Multiplicera heltal",
+                "description": "Multiplicera alla positiva heltal i denna text:\n\nWe found 3 boxes with 4 items each.\nThen we added 2 more boxes with 5 items each.\nTotal: 3 * 4 * 2 * 5 = 120.",
+                "input_type": "number",
+                "placeholder": "Ange produkten",
+                "expected_answer": "120"
+            },
+            3: {
+                "title": "Nivå 3: Maximum per kategori",
+                "description": "Hitta maximum per kategori från denna CSV:\n\nX,10\nX,20\nX,15\nY,5\nY,8\nY,12\n\nSvara i format: X=20,Y=12",
+                "input_type": "text",
+                "placeholder": "X=20,Y=12",
+                "expected_answer": "X=20,Y=12"
+            },
+            4: {
+                "title": "Nivå 4: ROT13-chiffer",
+                "description": "Dekryptera denna ROT13-chiffer: 'Uryyb, Jbeyq!'",
+                "input_type": "text",
+                "placeholder": "Ange dekrypterad text",
+                "expected_answer": "Hello, World!"
+            },
+            5: {
+                "title": "Nivå 5: Komplex JSON-analys",
+                "description": "Givet denna JSON-data:\n\n{\n  \"data\": [\n    {\"id\": 1, \"value\": 20},\n    {\"id\": 2, \"value\": 30},\n    {\"id\": 3, \"value\": 10}\n  ]\n}\n\nBeräkna summan av alla värden och hitta ID med högsta värde.\nSvara i format: sum=60,max_id=2",
+                "input_type": "text",
+                "placeholder": "sum=60,max_id=2",
+                "expected_answer": "sum=60,max_id=2"
+            }
+        }
+    }
+}
+
 
 @app.route("/")
 def index():
@@ -57,52 +143,29 @@ def level(level_id):
         return redirect(url_for('leaderboard'))
     
     username = session['username']
+    competition_id = db.get_active_competition_id()
+    
+    # Kontrollera att tävlingen finns
+    if competition_id not in COMPETITIONS:
+        return redirect(url_for('leaderboard'))
+    
+    competition = COMPETITIONS[competition_id]
+    
+    # Kontrollera att nivån finns i tävlingen
+    if level_id not in competition["levels"]:
+        return redirect(url_for('leaderboard'))
     
     # Kontrollera att alla tidigare nivåer är klara (förutom nivå 1)
     if level_id > 1:
         # Kontrollera om alla nivåer 1 till level_id-1 är klara
         for prev_level in range(1, level_id):
-            if not db.has_completed_level(username, prev_level):
+            if prev_level not in competition["levels"]:
+                continue
+            if not db.has_completed_level(username, competition_id, prev_level):
                 # Hitta första oklara nivå och omdirigera dit
                 return redirect(url_for('level', level_id=prev_level))
     
-    # Problembeskrivningar
-    problems = {
-        1: {
-            "title": "Nivå 1: Räkna vokaler",
-            "description": "Räkna antalet vokaler (a, e, i, o, u, y, å, ä, ö) i texten: 'Programmering är roligt!'",
-            "input_type": "number",
-            "placeholder": "Ange antal vokaler"
-        },
-        2: {
-            "title": "Nivå 2: Summera heltal",
-            "description": "Summera alla heltal i denna text:\n\nThere are 42 apples in the basket. We found -5 rotten ones, so we removed them.\nThe remaining 37 apples are good quality.\nLater, we added 15 more apples from another batch.\nNow we have 52 total apples.\nBut wait, 8 apples were eaten, leaving us with 44.\nWe sold 12 of them for 3 dollars each, making 36 dollars profit.\nThe final count is 32 apples remaining in storage.\nEarlier today, there were -3 damaged apples that we discarded.\nTotal apples processed: 29 + 15 - 8 + 12 - 3 = 45.",
-            "input_type": "number",
-            "placeholder": "Ange summan"
-        },
-        3: {
-            "title": "Nivå 3: Genomsnitt per kategori",
-            "description": "Beräkna genomsnitt per kategori från denna CSV:\n\nA,3\nA,4\nA,5\nB,7\nB,7\nB,8\nC,10\nC,20\nD,1\nD,2\nD,3\n\nSvara i format: A=4.0,B=7.33,C=15.0,D=2.0",
-            "input_type": "text",
-            "placeholder": "A=4.0,B=7.33,C=15.0,D=2.0"
-        },
-        4: {
-            "title": "Nivå 4: Caesar-chiffer",
-            "description": "Dekryptera denna Caesar-chiffer (shift 7): 'Olssv, Dvysk!'",
-            "input_type": "text",
-            "placeholder": "Ange dekrypterad text"
-        },
-        5: {
-            "title": "Nivå 5: JSON-analys",
-            "description": "Givet denna JSON-data:\n\n{\n  \"items\": [\n    {\"name\": \"A\", \"score\": 10},\n    {\"name\": \"B\", \"score\": 25},\n    {\"name\": \"C\", \"score\": 15}\n  ]\n}\n\nBeräkna genomsnittlig poäng och hitta topprestationen.\nSvara i format: avg=16.67,top=B",
-            "input_type": "text",
-            "placeholder": "avg=16.67,top=B"
-        }
-    }
-    
-    problem = problems.get(level_id)
-    if not problem:
-        return redirect(url_for('leaderboard'))
+    problem = competition["levels"][level_id]
     
     return render_template('level.html', problem=problem, level_id=level_id, username=username)
 
@@ -116,130 +179,46 @@ def submit(level_id):
     if level_id < 1 or level_id > 5:
         return redirect(url_for('leaderboard'))
     
+    username = session['username']
+    competition_id = db.get_active_competition_id()
+    
+    # Kontrollera att tävlingen finns
+    if competition_id not in COMPETITIONS:
+        return redirect(url_for('leaderboard'))
+    
+    competition = COMPETITIONS[competition_id]
+    
+    # Kontrollera att nivån finns i tävlingen
+    if level_id not in competition["levels"]:
+        return redirect(url_for('leaderboard'))
+    
+    problem = competition["levels"][level_id]
+    
     # Kontrollera att tävlingen är aktiv
-    competition_state = db.get_competition_state()
+    competition_state = db.get_competition_state(competition_id)
     if not competition_state.get("is_active", False):
-        # Hämta problembeskrivning för felmeddelande
-        problems = {
-            1: {
-                "title": "Nivå 1: Räkna vokaler",
-                "description": "Räkna antalet vokaler (a, e, i, o, u, y, å, ä, ö) i texten: 'Programmering är roligt!'",
-                "input_type": "number",
-                "placeholder": "Ange antal vokaler"
-            },
-            2: {
-                "title": "Nivå 2: Summera heltal",
-                "description": "Summera alla heltal i denna text:\n\nThere are 42 apples in the basket. We found -5 rotten ones, so we removed them.\nThe remaining 37 apples are good quality.\nLater, we added 15 more apples from another batch.\nNow we have 52 total apples.\nBut wait, 8 apples were eaten, leaving us with 44.\nWe sold 12 of them for 3 dollars each, making 36 dollars profit.\nThe final count is 32 apples remaining in storage.\nEarlier today, there were -3 damaged apples that we discarded.\nTotal apples processed: 29 + 15 - 8 + 12 - 3 = 45.",
-                "input_type": "number",
-                "placeholder": "Ange summan"
-            },
-            3: {
-                "title": "Nivå 3: Genomsnitt per kategori",
-                "description": "Beräkna genomsnitt per kategori från denna CSV:\n\nA,3\nA,4\nA,5\nB,7\nB,7\nB,8\nC,10\nC,20\nD,1\nD,2\nD,3\n\nSvara i format: A=4.0,B=7.33,C=15.0,D=2.0",
-                "input_type": "text",
-                "placeholder": "A=4.0,B=7.33,C=15.0,D=2.0"
-            },
-            4: {
-                "title": "Nivå 4: Caesar-chiffer",
-                "description": "Dekryptera denna Caesar-chiffer (shift 7): 'Olssv, Dvysk!'",
-                "input_type": "text",
-                "placeholder": "Ange dekrypterad text"
-            },
-            5: {
-                "title": "Nivå 5: JSON-analys",
-                "description": "Givet denna JSON-data:\n\n{\n  \"items\": [\n    {\"name\": \"A\", \"score\": 10},\n    {\"name\": \"B\", \"score\": 25},\n    {\"name\": \"C\", \"score\": 15}\n  ]\n}\n\nBeräkna genomsnittlig poäng och hitta topprestationen.\nSvara i format: avg=16.67,top=B",
-                "input_type": "text",
-                "placeholder": "avg=16.67,top=B"
-            }
-        }
         return render_template('level.html', 
-                             problem=problems.get(level_id), 
+                             problem=problem, 
                              level_id=level_id, 
-                             username=session['username'],
+                             username=username,
                              error="Tävlingen är inte aktiv. Vänta tills tävlingen startar.")
     
     answer = request.form.get('answer', '').strip()
     if not answer:
-        # Hämta problembeskrivning igen
-        problems = {
-            1: {
-                "title": "Nivå 1: Räkna vokaler",
-                "description": "Räkna antalet vokaler (a, e, i, o, u, y, å, ä, ö) i texten: 'Programmering är roligt!'",
-                "input_type": "number",
-                "placeholder": "Ange antal vokaler"
-            },
-            2: {
-                "title": "Nivå 2: Summera heltal",
-                "description": "Summera alla heltal i denna text:\n\nThere are 42 apples in the basket. We found -5 rotten ones, so we removed them.\nThe remaining 37 apples are good quality.\nLater, we added 15 more apples from another batch.\nNow we have 52 total apples.\nBut wait, 8 apples were eaten, leaving us with 44.\nWe sold 12 of them for 3 dollars each, making 36 dollars profit.\nThe final count is 32 apples remaining in storage.\nEarlier today, there were -3 damaged apples that we discarded.\nTotal apples processed: 29 + 15 - 8 + 12 - 3 = 45.",
-                "input_type": "number",
-                "placeholder": "Ange summan"
-            },
-            3: {
-                "title": "Nivå 3: Genomsnitt per kategori",
-                "description": "Beräkna genomsnitt per kategori från denna CSV:\n\nA,3\nA,4\nA,5\nB,7\nB,7\nB,8\nC,10\nC,20\nD,1\nD,2\nD,3\n\nSvara i format: A=4.0,B=7.33,C=15.0,D=2.0",
-                "input_type": "text",
-                "placeholder": "A=4.0,B=7.33,C=15.0,D=2.0"
-            },
-            4: {
-                "title": "Nivå 4: Caesar-chiffer",
-                "description": "Dekryptera denna Caesar-chiffer (shift 7): 'Olssv, Dvysk!'",
-                "input_type": "text",
-                "placeholder": "Ange dekrypterad text"
-            },
-            5: {
-                "title": "Nivå 5: JSON-analys",
-                "description": "Givet denna JSON-data:\n\n{\n  \"items\": [\n    {\"name\": \"A\", \"score\": 10},\n    {\"name\": \"B\", \"score\": 25},\n    {\"name\": \"C\", \"score\": 15}\n  ]\n}\n\nBeräkna genomsnittlig poäng och hitta topprestationen.\nSvara i format: avg=16.67,top=B",
-                "input_type": "text",
-                "placeholder": "avg=16.67,top=B"
-            }
-        }
-        
         return render_template('level.html', 
-                                 problem=problems.get(level_id), 
+                                 problem=problem, 
                                  level_id=level_id, 
-                                 username=session['username'],
+                                 username=username,
                                  error="Svar krävs")
     
-    # Validera svar
-    is_correct = db.submit_answer(session['username'], level_id, answer)
+    # Validera svar med expected_answer från competition config
+    expected_answer = problem.get("expected_answer", "")
+    is_correct = db.submit_answer(username, competition_id, level_id, answer, expected_answer)
     
     if is_correct:
-        # Hämta problembeskrivning för att visa success-meddelande
-        problems = {
-            1: {
-                "title": "Nivå 1: Räkna vokaler",
-                "description": "Räkna antalet vokaler (a, e, i, o, u, y, å, ä, ö) i texten: 'Programmering är roligt!'",
-                "input_type": "number",
-                "placeholder": "Ange antal vokaler"
-            },
-            2: {
-                "title": "Nivå 2: Summera heltal",
-                "description": "Summera alla heltal i denna text:\n\nThere are 42 apples in the basket. We found -5 rotten ones, so we removed them.\nThe remaining 37 apples are good quality.\nLater, we added 15 more apples from another batch.\nNow we have 52 total apples.\nBut wait, 8 apples were eaten, leaving us with 44.\nWe sold 12 of them for 3 dollars each, making 36 dollars profit.\nThe final count is 32 apples remaining in storage.\nEarlier today, there were -3 damaged apples that we discarded.\nTotal apples processed: 29 + 15 - 8 + 12 - 3 = 45.",
-                "input_type": "number",
-                "placeholder": "Ange summan"
-            },
-            3: {
-                "title": "Nivå 3: Genomsnitt per kategori",
-                "description": "Beräkna genomsnitt per kategori från denna CSV:\n\nA,3\nA,4\nA,5\nB,7\nB,7\nB,8\nC,10\nC,20\nD,1\nD,2\nD,3\n\nSvara i format: A=4.0,B=7.33,C=15.0,D=2.0",
-                "input_type": "text",
-                "placeholder": "A=4.0,B=7.33,C=15.0,D=2.0"
-            },
-            4: {
-                "title": "Nivå 4: Caesar-chiffer",
-                "description": "Dekryptera denna Caesar-chiffer (shift 7): 'Olssv, Dvysk!'",
-                "input_type": "text",
-                "placeholder": "Ange dekrypterad text"
-            },
-            5: {
-                "title": "Nivå 5: JSON-analys",
-                "description": "Givet denna JSON-data:\n\n{\n  \"items\": [\n    {\"name\": \"A\", \"score\": 10},\n    {\"name\": \"B\", \"score\": 25},\n    {\"name\": \"C\", \"score\": 15}\n  ]\n}\n\nBeräkna genomsnittlig poäng och hitta topprestationen.\nSvara i format: avg=16.67,top=B",
-                "input_type": "text",
-                "placeholder": "avg=16.67,top=B"
-            }
-        }
-        
         # Bestäm nästa nivå eller leaderboard
-        if level_id < 5:
+        max_level = max(competition["levels"].keys())
+        if level_id < max_level:
             next_level = level_id + 1
             next_url = url_for('level', level_id=next_level)
         else:
@@ -247,51 +226,17 @@ def submit(level_id):
             next_url = url_for('leaderboard')
         
         return render_template('level.html', 
-                             problem=problems.get(level_id), 
+                             problem=problem, 
                              level_id=level_id, 
-                             username=session['username'],
+                             username=username,
                              success=True,
                              next_url=next_url,
                              next_level=next_level)
     else:
-        # Hämta problembeskrivning igen för felmeddelande
-        problems = {
-            1: {
-                "title": "Nivå 1: Räkna vokaler",
-                "description": "Räkna antalet vokaler (a, e, i, o, u, y, å, ä, ö) i texten: 'Programmering är roligt!'",
-                "input_type": "number",
-                "placeholder": "Ange antal vokaler"
-            },
-            2: {
-                "title": "Nivå 2: Summera heltal",
-                "description": "Summera alla heltal i denna text:\n\nThere are 42 apples in the basket. We found -5 rotten ones, so we removed them.\nThe remaining 37 apples are good quality.\nLater, we added 15 more apples from another batch.\nNow we have 52 total apples.\nBut wait, 8 apples were eaten, leaving us with 44.\nWe sold 12 of them for 3 dollars each, making 36 dollars profit.\nThe final count is 32 apples remaining in storage.\nEarlier today, there were -3 damaged apples that we discarded.\nTotal apples processed: 29 + 15 - 8 + 12 - 3 = 45.",
-                "input_type": "number",
-                "placeholder": "Ange summan"
-            },
-            3: {
-                "title": "Nivå 3: Genomsnitt per kategori",
-                "description": "Beräkna genomsnitt per kategori från denna CSV:\n\nA,3\nA,4\nA,5\nB,7\nB,7\nB,8\nC,10\nC,20\nD,1\nD,2\nD,3\n\nSvara i format: A=4.0,B=7.33,C=15.0,D=2.0",
-                "input_type": "text",
-                "placeholder": "A=4.0,B=7.33,C=15.0,D=2.0"
-            },
-            4: {
-                "title": "Nivå 4: Caesar-chiffer",
-                "description": "Dekryptera denna Caesar-chiffer (shift 7): 'Olssv, Dvysk!'",
-                "input_type": "text",
-                "placeholder": "Ange dekrypterad text"
-            },
-            5: {
-                "title": "Nivå 5: JSON-analys",
-                "description": "Givet denna JSON-data:\n\n{\n  \"items\": [\n    {\"name\": \"A\", \"score\": 10},\n    {\"name\": \"B\", \"score\": 25},\n    {\"name\": \"C\", \"score\": 15}\n  ]\n}\n\nBeräkna genomsnittlig poäng och hitta topprestationen.\nSvara i format: avg=16.67,top=B",
-                "input_type": "text",
-                "placeholder": "avg=16.67,top=B"
-            }
-        }
-        
         return render_template('level.html', 
-                             problem=problems.get(level_id), 
+                             problem=problem, 
                              level_id=level_id, 
-                             username=session['username'],
+                             username=username,
                              error="Felaktigt svar! Försök igen.")
 
 
@@ -316,7 +261,18 @@ def admin():
     if api_key_header != API_KEY:
         return "API-nyckel krävs", 403
     
-    competition_state = db.get_competition_state()
+    active_competition_id = db.get_active_competition_id()
+    competition_state = db.get_competition_state(active_competition_id)
+    all_competitions = db.get_all_competitions()
+    
+    # Lägg till competition info från COMPETITIONS config
+    competitions_with_info = []
+    for comp in all_competitions:
+        comp_id = comp["id"]
+        comp_info = COMPETITIONS.get(comp_id, {})
+        comp["config"] = comp_info
+        comp["is_active"] = (comp_id == active_competition_id)
+        competitions_with_info.append(comp)
     
     # Formatera start_time till läsbart format om tävlingen är aktiv
     if competition_state.get("is_active") and competition_state.get("start_time", 0) > 0:
@@ -327,33 +283,63 @@ def admin():
     else:
         competition_state["start_time_formatted"] = None
     
-    return render_template('admin.html', state=competition_state)
+    competition_state["active_competition_id"] = active_competition_id
+    
+    return render_template('admin.html', state=competition_state, competitions=competitions_with_info)
 
 
 @app.route("/admin/start", methods=["POST"])
 def admin_start():
-    """Startar tävlingen."""
+    """Startar den aktiva tävlingen."""
     api_key_header = request.headers.get("X-API-Key")
     if api_key_header != API_KEY:
         return jsonify({"error": "Ogiltig API-nyckel"}), 403
     
+    competition_id = db.get_active_competition_id()
     import time
     start_time = int(time.time())
-    db.set_competition_state(True, start_time)
+    db.set_competition_state(competition_id, True, start_time)
     
     return jsonify({"success": True, "message": "Tävling startad!"})
 
 
 @app.route("/admin/stop", methods=["POST"])
 def admin_stop():
-    """Stoppar tävlingen."""
+    """Stoppar den aktiva tävlingen."""
     api_key_header = request.headers.get("X-API-Key")
     if api_key_header != API_KEY:
         return jsonify({"error": "Ogiltig API-nyckel"}), 403
     
-    db.set_competition_state(False, 0)
+    competition_id = db.get_active_competition_id()
+    # Behåll start_time när vi stoppar - sätt bara is_active till False
+    current_state = db.get_competition_state(competition_id)
+    existing_start_time = current_state.get("start_time", 0)
+    db.set_competition_state(competition_id, False, existing_start_time)
     
     return jsonify({"success": True, "message": "Tävling stoppad!"})
+
+
+@app.route("/admin/competitions", methods=["POST"])
+def admin_set_active_competition():
+    """Sätter aktiv tävling."""
+    api_key_header = request.headers.get("X-API-Key")
+    if api_key_header != API_KEY:
+        return jsonify({"error": "Ogiltig API-nyckel"}), 403
+    
+    data = request.json
+    if not data or "competition_id" not in data:
+        return jsonify({"error": "Saknar competition_id"}), 400
+    
+    competition_id = data["competition_id"]
+    
+    # Kontrollera att tävlingen finns
+    if competition_id not in COMPETITIONS:
+        return jsonify({"error": "Ogiltig tävling"}), 400
+    
+    # Sätt som aktiv
+    db.set_active_competition(competition_id)
+    
+    return jsonify({"success": True, "message": f"Tävling {competition_id} är nu aktiv"})
 
 
 @app.route("/update", methods=["POST"])
@@ -378,12 +364,21 @@ def update():
     if not isinstance(ms, int) or ms < 0:
         return jsonify({"error": "Ogiltig tid"}), 400
     
+    competition_id = db.get_active_competition_id()
+    
     # Kontrollera att tävlingen är aktiv
-    competition_state = db.get_competition_state()
+    competition_state = db.get_competition_state(competition_id)
     if not competition_state.get("is_active", False):
         return jsonify({"error": "Tävlingen är inte aktiv"}), 403
     
-    improved = db.save_result(user, level, ms)
+    # Kontrollera att nivån finns i tävlingen
+    if competition_id not in COMPETITIONS:
+        return jsonify({"error": "Tävlingen finns inte"}), 400
+    
+    if level not in COMPETITIONS[competition_id]["levels"]:
+        return jsonify({"error": "Nivån finns inte i tävlingen"}), 400
+    
+    improved = db.save_result(user, competition_id, level, ms)
     
     return jsonify({
         "success": True,
@@ -410,6 +405,7 @@ def reset():
         os_module.remove(db.DB_PATH)
     
     db.init_db()
+    db.init_competitions(COMPETITIONS)
     
     return jsonify({"success": True, "message": "Alla resultat raderade"})
 
@@ -417,6 +413,9 @@ def reset():
 if __name__ == "__main__":
     # Initiera databas vid start
     db.init_db()
+    
+    # Initiera tävlingar i databasen
+    db.init_competitions(COMPETITIONS)
     
     # Starta Flask-server
     print(f"🚀 Server startar på http://127.0.0.1:5000/")

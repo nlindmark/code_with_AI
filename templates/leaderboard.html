@@ -101,7 +101,7 @@
                 {% for level, data in entry.levels.items() %}
                     <small style="color: #666;">
                         Nivå {{ level }}: 
-                        {% if data.ms > 0 %}
+                        {% if data.ms is defined and data.ms is not none %}
                             {{ (data.ms / 1000)|int }}s
                         {% else %}
                             ✓
@@ -147,7 +147,9 @@
     function formatLevelDetails(levels) {
         return Object.keys(levels).map(level => {
             const levelData = levels[level];
-            const display = levelData.ms > 0 ? Math.round(levelData.ms / 1000) + 's' : '✓';
+            const display = (levelData.ms !== undefined && levelData.ms !== null) 
+                ? Math.round(levelData.ms / 1000) + 's' 
+                : '✓';
             return `<small style="color: #666;">Nivå ${level}: ${display}</small>`;
         }).join('<br>');
     }

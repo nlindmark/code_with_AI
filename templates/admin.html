@@ -108,6 +108,36 @@
                 Tävlingen är inte startad
             {% endif %}
         </p>
+        {% if state.active_competition_id %}
+        <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
+            Aktiv tävling: <strong>
+                {% for comp in competitions %}
+                    {% if comp.id == state.active_competition_id %}
+                        {{ comp.name }}
+                    {% endif %}
+                {% endfor %}
+            </strong>
+        </p>
+        {% endif %}
+    </div>
+    
+    <div style="background: white; border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+        <h3 style="margin-bottom: 15px; color: #333; text-align: center;">Välj Aktiv Tävling</h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            {% for comp in competitions %}
+            <button onclick="setActiveCompetition({{ comp.id }})" 
+                    class="btn {% if comp.is_active %}btn-primary{% else %}btn-secondary{% endif %}"
+                    style="width: 100%; text-align: left; justify-content: space-between; display: flex;">
+                <span>
+                    {% if comp.is_active %}✅ {% endif %}
+                    <strong>{{ comp.name }}</strong>
+                    {% if comp.description %}
+                    <br><small style="font-weight: normal; opacity: 0.8;">{{ comp.description }}</small>
+                    {% endif %}
+                </span>
+            </button>
+            {% endfor %}
+        </div>
     </div>
     
     <div class="control-buttons">
@@ -198,6 +228,31 @@
             })
             .catch(error => {
                 alert('Fel vid stopp: ' + error);
+            });
+        }
+    }
+    
+    function setActiveCompetition(competitionId) {
+        if (confirm('Är du säker på att du vill byta till denna tävling?')) {
+            fetch('/admin/competitions', {
+                method: 'POST',
+                headers: {
+                    'X-API-Key': API_KEY,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ competition_id: competitionId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Tävling ändrad!');
+                    location.reload();
+                } else {
+                    alert('Fel: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Fel vid byte av tävling: ' + error);
             });
         }
     }
