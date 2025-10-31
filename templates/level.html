@@ -6,12 +6,24 @@
 <div style="max-width: 800px; margin: 0 auto;">
     <h2 style="color: #333; margin-bottom: 20px;">{{ problem.title }}</h2>
     
+    {% if success %}
+    <div class="alert alert-success" id="success-message" style="display: block; text-align: center; font-size: 1.2em; padding: 30px;">
+        ✅ <strong>Rätt svar! Nivå {{ level_id }} klar!</strong>
+        {% if next_level %}
+        <p style="margin-top: 15px; font-size: 0.9em; color: #666;">Du går vidare till nivå {{ next_level }} om 2 sekunder...</p>
+        {% else %}
+        <p style="margin-top: 15px; font-size: 0.9em; color: #666;">Du går vidare till leaderboard om 2 sekunder...</p>
+        {% endif %}
+    </div>
+    {% endif %}
+    
     {% if error %}
     <div class="alert alert-error">
         {{ error }}
     </div>
     {% endif %}
     
+    {% if not success %}
     <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 30px;">
         <h3 style="margin-bottom: 15px; color: #333;">Problembeskrivning:</h3>
         <div style="white-space: pre-line; font-family: 'Courier New', monospace; background-color: white; padding: 15px; border-radius: 3px; border: 1px solid #ddd;">
@@ -56,7 +68,19 @@
         Beräkna genomsnittet av alla poäng och hitta den högsta.
         {% endif %}
     </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if success %}
+<script>
+    // Visa success-meddelande och redirecta efter 2 sekunder
+    setTimeout(function() {
+        window.location.href = '{{ next_url }}';
+    }, 2000);
+</script>
+{% endif %}
 {% endblock %}
 
 

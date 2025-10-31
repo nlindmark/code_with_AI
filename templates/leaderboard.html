@@ -92,13 +92,7 @@
             </td>
             <td class="time">
                 {% if entry.total_ms > 0 %}
-                    {% if entry.total_ms < 1000 %}
-                        {{ entry.total_ms }} ms
-                    {% elif entry.total_ms < 60000 %}
-                        {{ "%.2f"|format(entry.total_ms / 1000) }} s
-                    {% else %}
-                        {{ "%.2f"|format(entry.total_ms / 60000) }} min
-                    {% endif %}
+                    {{ (entry.total_ms / 1000)|int }}s
                 {% else %}
                     -
                 {% endif %}
@@ -108,7 +102,7 @@
                     <small style="color: #666;">
                         Nivå {{ level }}: 
                         {% if data.ms > 0 %}
-                            {{ data.ms }}ms
+                            {{ (data.ms / 1000)|int }}s
                         {% else %}
                             ✓
                         {% endif %}
@@ -139,9 +133,7 @@
 <script>
     // Funktion för att formatera tid i millisekunder till läsbart format
     function formatTime(ms) {
-        if (ms < 1000) return ms + " ms";
-        if (ms < 60000) return (ms / 1000).toFixed(2) + " s";
-        return (ms / 60000).toFixed(2) + " min";
+        return Math.round(ms / 1000) + "s";
     }
 
     // Hjälpfunktion för att escape HTML (för säkerhet)
@@ -155,7 +147,7 @@
     function formatLevelDetails(levels) {
         return Object.keys(levels).map(level => {
             const levelData = levels[level];
-            const display = levelData.ms > 0 ? levelData.ms + 'ms' : '✓';
+            const display = levelData.ms > 0 ? Math.round(levelData.ms / 1000) + 's' : '✓';
             return `<small style="color: #666;">Nivå ${level}: ${display}</small>`;
         }).join('<br>');
     }

@@ -204,11 +204,55 @@ def submit(level_id):
     is_correct = db.submit_answer(session['username'], level_id, answer)
     
     if is_correct:
-        # Gå till nästa nivå eller leaderboard
+        # Hämta problembeskrivning för att visa success-meddelande
+        problems = {
+            1: {
+                "title": "Nivå 1: Räkna vokaler",
+                "description": "Räkna antalet vokaler (a, e, i, o, u, y, å, ä, ö) i texten: 'Programmering är roligt!'",
+                "input_type": "number",
+                "placeholder": "Ange antal vokaler"
+            },
+            2: {
+                "title": "Nivå 2: Summera heltal",
+                "description": "Summera alla heltal i denna text:\n\nThere are 42 apples in the basket. We found -5 rotten ones, so we removed them.\nThe remaining 37 apples are good quality.\nLater, we added 15 more apples from another batch.\nNow we have 52 total apples.\nBut wait, 8 apples were eaten, leaving us with 44.\nWe sold 12 of them for 3 dollars each, making 36 dollars profit.\nThe final count is 32 apples remaining in storage.\nEarlier today, there were -3 damaged apples that we discarded.\nTotal apples processed: 29 + 15 - 8 + 12 - 3 = 45.",
+                "input_type": "number",
+                "placeholder": "Ange summan"
+            },
+            3: {
+                "title": "Nivå 3: Genomsnitt per kategori",
+                "description": "Beräkna genomsnitt per kategori från denna CSV:\n\nA,3\nA,4\nA,5\nB,7\nB,7\nB,8\nC,10\nC,20\nD,1\nD,2\nD,3\n\nSvara i format: A=4.0,B=7.33,C=15.0,D=2.0",
+                "input_type": "text",
+                "placeholder": "A=4.0,B=7.33,C=15.0,D=2.0"
+            },
+            4: {
+                "title": "Nivå 4: Caesar-chiffer",
+                "description": "Dekryptera denna Caesar-chiffer (shift 7): 'Olssv, Dvysk!'",
+                "input_type": "text",
+                "placeholder": "Ange dekrypterad text"
+            },
+            5: {
+                "title": "Nivå 5: JSON-analys",
+                "description": "Givet denna JSON-data:\n\n{\n  \"items\": [\n    {\"name\": \"A\", \"score\": 10},\n    {\"name\": \"B\", \"score\": 25},\n    {\"name\": \"C\", \"score\": 15}\n  ]\n}\n\nBeräkna genomsnittlig poäng och hitta topprestationen.\nSvara i format: avg=16.67,top=B",
+                "input_type": "text",
+                "placeholder": "avg=16.67,top=B"
+            }
+        }
+        
+        # Bestäm nästa nivå eller leaderboard
         if level_id < 5:
-            return redirect(url_for('level', level_id=level_id + 1))
+            next_level = level_id + 1
+            next_url = url_for('level', level_id=next_level)
         else:
-            return redirect(url_for('leaderboard'))
+            next_level = None
+            next_url = url_for('leaderboard')
+        
+        return render_template('level.html', 
+                             problem=problems.get(level_id), 
+                             level_id=level_id, 
+                             username=session['username'],
+                             success=True,
+                             next_url=next_url,
+                             next_level=next_level)
     else:
         # Hämta problembeskrivning igen för felmeddelande
         problems = {
