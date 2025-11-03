@@ -126,17 +126,28 @@ def init_competitions(competitions_config: Dict[int, Dict[str, Any]]):
 
 
 def get_active_competition_id() -> int:
-    """Hämtar ID för den aktiva tävlingen."""
+    """Hämtar ID för den valda tävlingen (startad eller ej)."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
+    # Först försök hitta en startad tävling (is_active = TRUE)
     cursor.execute("SELECT competition_id FROM competition_state WHERE is_active = TRUE LIMIT 1")
+    row = cursor.fetchone()
+    
+    if row:
+        conn.close()
+        return row[0]
+    
+    # Om ingen är startad, hitta den senast skapade/uppdaterade tävlingen (den valda)
+    # Använd den högsta competition_id som finns i tabellen
+    cursor.execute("SELECT competition_id FROM competition_state ORDER BY competition_id DESC LIMIT 1")
     row = cursor.fetchone()
     conn.close()
     
     if row:
         return row[0]
-    return 1  # Default till tävling 1 om ingen är aktiv
+    
+    return 1  # Default till tävling 1 om ingen finns
 
 
 def get_all_competitions() -> List[Dict[str, Any]]:
@@ -331,27 +342,28 @@ def set_competition_state(competition_id: int, is_active: bool, start_time: int 
 
 
 def set_active_competition(competition_id: int):
-    """Sätter en tävling som aktiv och deaktiverar alla andra."""
+    """Sätter en tävling som vald (men startar den inte)."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    # Deaktivera alla tävlingar
+    # Deaktivera alla tävlingar (sätt is_active = FALSE)
     cursor.execute("UPDATE competition_state SET is_active = FALSE")
     
     # Kontrollera om raden redan finns
-    cursor.execute("SELECT start_time FROM competition_state WHERE competition_id = ?", (competition_id,))
+    cursor.execute("SELECT start_time, is_active FROM competition_state WHERE competition_id = ?", (competition_id,))
     existing = cursor.fetchone()
     
     if existing:
-        # Uppdatera befintlig, behåll start_time
+        # Uppdatera befintlig - behåll start_time och is_active från tidigare
+        # Men sätt is_active = FALSE eftersom vi bara väljer, inte startar
         cursor.execute(
-            "UPDATE competition_state SET is_active = TRUE WHERE competition_id = ?",
+            "UPDATE competition_state SET is_active = FALSE WHERE competition_id = ?",
             (competition_id,)
         )
     else:
-        # Skapa ny
+        # Skapa ny med is_active = FALSE (ej startad än)
         cursor.execute(
-            "INSERT INTO competition_state (competition_id, is_active, start_time) VALUES (?, TRUE, 0)",
+            "INSERT INTO competition_state (competition_id, is_active, start_time) VALUES (?, FALSE, 0)",
             (competition_id,)
         )
     

@@ -3,7 +3,7 @@
   "description": "Från denna CSV:\n\n{{input}}\n\nBeräkna summan av alla värden.",
   "input_type": "number",
   "placeholder": "Ange summa av alla värden",
-  "expected_answer": "70",
+  "expected_answer": "677",
   "input_file": "data.csv"
 }
 

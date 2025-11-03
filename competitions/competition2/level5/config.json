@@ -3,7 +3,7 @@
   "description": "Givet denna JSON-data:\n\n{{input}}\n\nBeräkna summan av alla värden.",
   "input_type": "number",
   "placeholder": "Ange summan av alla värden",
-  "expected_answer": "60",
+  "expected_answer": "804",
   "input_file": "api_stub.json"
 }
 

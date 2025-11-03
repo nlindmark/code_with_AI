@@ -3,7 +3,7 @@
   "description": "Dekryptera denna ROT13-chiffer: '{{input}}'",
   "input_type": "text",
   "placeholder": "Ange dekrypterad text",
-  "expected_answer": "Hello, World!",
+  "expected_answer": "Hello, World! This is a much longer message to demonstrate the ROT13 cipher. It contains many words and sentences that need to be encrypted properly. The quick brown fox jumps over the lazy dog. Programming is fun and challenging. Let us see how this works with a longer text.",
   "input_file": "secret.txt"
 }
 

@@ -3,7 +3,7 @@
   "description": "Multiplicera alla positiva heltal i denna text:\n\n{{input}}",
   "input_type": "number",
   "placeholder": "Ange produkten",
-  "expected_answer": "120",
+  "expected_answer": "448516803456769943037542400000000",
   "input_file": "input.txt"
 }
 
