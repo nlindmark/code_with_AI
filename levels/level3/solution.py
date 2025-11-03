@@ -44,3 +44,12 @@ def avg_per_category(csv_path: str) -> dict:
 
 
 
+
+
+
+
+
+
+
+
+

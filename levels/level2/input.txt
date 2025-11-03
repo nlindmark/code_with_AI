@@ -10,3 +10,12 @@ Total apples processed: 29 + 15 - 8 + 12 - 3 = 45.
 
 
 
+
+
+
+
+
+
+
+
+

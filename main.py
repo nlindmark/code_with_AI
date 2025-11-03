@@ -38,11 +38,11 @@ COMPETITIONS = {
                 "expected_answer": "363"
             },
             3: {
-                "title": "Nivå 3: Genomsnitt per kategori",
-                "description": "Beräkna genomsnitt per kategori från denna CSV:\n\nA,3\nA,4\nA,5\nB,7\nB,7\nB,8\nC,10\nC,20\nD,1\nD,2\nD,3\n\nSvara i format: A=4.0,B=7.33,C=15.0,D=2.0",
-                "input_type": "text",
-                "placeholder": "A=4.0,B=7.33,C=15.0,D=2.0",
-                "expected_answer": "A=4.0,B=7.33,C=15.0,D=2.0"
+                "title": "Nivå 3: Summa av alla värden",
+                "description": "Från denna CSV:\n\nA,3\nA,4\nA,5\nB,7\nB,7\nB,8\nC,10\nC,20\nD,1\nD,2\nD,3\n\nBeräkna summan av alla värden.",
+                "input_type": "number",
+                "placeholder": "Ange summa av alla värden",
+                "expected_answer": "70"
             },
             4: {
                 "title": "Nivå 4: Caesar-chiffer",
@@ -53,10 +53,10 @@ COMPETITIONS = {
             },
             5: {
                 "title": "Nivå 5: JSON-analys",
-                "description": "Givet denna JSON-data:\n\n{\n  \"items\": [\n    {\"name\": \"A\", \"score\": 10},\n    {\"name\": \"B\", \"score\": 25},\n    {\"name\": \"C\", \"score\": 15}\n  ]\n}\n\nBeräkna genomsnittlig poäng och hitta topprestationen.\nSvara i format: avg=16.67,top=B",
-                "input_type": "text",
-                "placeholder": "avg=16.67,top=B",
-                "expected_answer": "avg=16.67,top=B"
+                "description": "Givet denna JSON-data:\n\n{\n  \"items\": [\n    {\"name\": \"A\", \"score\": 10},\n    {\"name\": \"B\", \"score\": 25},\n    {\"name\": \"C\", \"score\": 15}\n  ]\n}\n\nBeräkna summan av alla poäng.",
+                "input_type": "number",
+                "placeholder": "Ange summa av alla poäng",
+                "expected_answer": "50"
             }
         }
     },
@@ -79,11 +79,11 @@ COMPETITIONS = {
                 "expected_answer": "120"
             },
             3: {
-                "title": "Nivå 3: Maximum per kategori",
-                "description": "Hitta maximum per kategori från denna CSV:\n\nX,10\nX,20\nX,15\nY,5\nY,8\nY,12\n\nSvara i format: X=20,Y=12",
-                "input_type": "text",
-                "placeholder": "X=20,Y=12",
-                "expected_answer": "X=20,Y=12"
+                "title": "Nivå 3: Summa av alla värden",
+                "description": "Från denna CSV:\n\nX,10\nX,20\nX,15\nY,5\nY,8\nY,12\n\nBeräkna summan av alla värden.",
+                "input_type": "number",
+                "placeholder": "Ange summa av alla värden",
+                "expected_answer": "70"
             },
             4: {
                 "title": "Nivå 4: ROT13-chiffer",
@@ -94,10 +94,10 @@ COMPETITIONS = {
             },
             5: {
                 "title": "Nivå 5: Komplex JSON-analys",
-                "description": "Givet denna JSON-data:\n\n{\n  \"data\": [\n    {\"id\": 1, \"value\": 20},\n    {\"id\": 2, \"value\": 30},\n    {\"id\": 3, \"value\": 10}\n  ]\n}\n\nBeräkna summan av alla värden och hitta ID med högsta värde.\nSvara i format: sum=60,max_id=2",
-                "input_type": "text",
-                "placeholder": "sum=60,max_id=2",
-                "expected_answer": "sum=60,max_id=2"
+                "description": "Givet denna JSON-data:\n\n{\n  \"data\": [\n    {\"id\": 1, \"value\": 20},\n    {\"id\": 2, \"value\": 30},\n    {\"id\": 3, \"value\": 10}\n  ]\n}\n\nBeräkna summan av alla värden.",
+                "input_type": "number",
+                "placeholder": "Ange summan av alla värden",
+                "expected_answer": "60"
             }
         }
     }
