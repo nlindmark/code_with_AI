@@ -1,0 +1,8 @@
+{
+  "title": "Level 3: Diagnostic Event Detection",
+  "description": "UDS (Unified Diagnostic Services) messages are used for vehicle diagnostics. These messages use CAN IDs in the range 0x7E0 to 0x7EF.\n\nAt what timestamp (HH:MM:SS format) does the first UDS diagnostic message appear in the log?\n\nDownload the CAN log file to analyze it.",
+  "input_type": "text",
+  "placeholder": "Enter timestamp in HH:MM:SS format (e.g., 10:30:34)",
+  "expected_answer": "11:42:34",
+  "input_file": "VBG_CAN_Log.log"
+}

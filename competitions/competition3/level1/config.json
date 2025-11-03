@@ -1,0 +1,8 @@
+{
+  "title": "Level 1: Count Unique CAN IDs",
+  "description": "VBG's electrical system contains several ECUs that communicate over CAN bus. Analyze the CAN log file and count how many unique CAN IDs are present.\n\nDownload the CAN log file to analyze it.",
+  "input_type": "number",
+  "placeholder": "Enter the number of unique CAN IDs",
+  "expected_answer": "27",
+  "input_file": "VBG_CAN_Log.log"
+}

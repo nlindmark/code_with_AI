@@ -1,0 +1,8 @@
+{
+  "title": "Level 2: Timestamp Pattern Detection",
+  "description": "CAN messages contain data bytes that change over time. Find the first message where CAN ID 0xCF11000 sends a message where byte 0 equals 0x7F AND byte 1 equals 0x18.\n\nAt what timestamp (HH:MM:SS format) does this pattern first occur?\n\nDownload the CAN log file to analyze it.",
+  "input_type": "text",
+  "placeholder": "Enter timestamp in HH:MM:SS format (e.g., 11:30:01)",
+  "expected_answer": "11:40:04",
+  "input_file": "VBG_CAN_Log.log"
+}
