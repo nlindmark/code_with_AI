@@ -3,7 +3,7 @@
   "description": "Summera alla heltal i denna text:\n\n{{input}}",
   "input_type": "number",
   "placeholder": "Ange summan",
-  "expected_answer": "363",
+  "expected_answer": "273",
   "input_file": "input.txt"
 }
 

@@ -225,6 +225,53 @@ def download_input_file(competition_id, level_id, filename):
     return send_from_directory(directory, filename, as_attachment=True)
 
 
+@app.route("/solution/<int:competition_id>/<int:level_id>")
+def get_solution(competition_id, level_id):
+    """
+    Hämtar lösningsprogrammet för en nivå.
+    Returnerar solution.py innehållet som text.
+    Säkerhet: Validerar att tävlingen och nivån finns.
+    """
+    # Kontrollera att tävlingen finns
+    if competition_id not in COMPETITIONS:
+        return "Tävling finns inte", 404
+    
+    competition = COMPETITIONS[competition_id]
+    
+    # Kontrollera att nivån finns i tävlingen
+    if level_id not in competition["levels"]:
+        return "Nivå finns inte", 404
+    
+    level = competition["levels"][level_id]
+    
+    # Kontrollera att nivån har en solution file
+    if "solution_file" not in level:
+        return "Ingen lösning finns för denna nivå", 404
+    
+    # Konstruera sökväg till solution.py
+    from pathlib import Path
+    competitions_dir = Path("competitions")
+    solution_path = competitions_dir / f"competition{competition_id}" / f"level{level_id}" / "solution.py"
+    
+    # Säkerhetskontroll: Verifiera att filen verkligen finns på rätt plats
+    if not solution_path.exists() or not solution_path.is_file():
+        return "Lösningsfil hittades inte", 404
+    
+    # Verifiera att filen är inom competitions-katalogen (prevent path traversal)
+    try:
+        solution_path.resolve().relative_to(Path("competitions").resolve())
+    except ValueError:
+        return "Ogiltig fil-sökväg", 403
+    
+    # Läs och returnera filinnehållet
+    try:
+        with open(solution_path, 'r', encoding='utf-8') as f:
+            solution_content = f.read()
+        return solution_content, 200, {'Content-Type': 'text/plain; charset=utf-8'}
+    except Exception as e:
+        return f"Fel vid läsning av lösningsfil: {e}", 500
+
+
 @app.route("/admin")
 def admin():
     """Admin-kontrollpanel för tävlingsledare."""

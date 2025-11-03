@@ -3,6 +3,6 @@
   "description": "Räkna antalet konsonanter (alla bokstäver som inte är vokaler) i texten: 'Programmering är roligt!'",
   "input_type": "number",
   "placeholder": "Ange antal konsonanter",
-  "expected_answer": "15"
+  "expected_answer": "14"
 }
 

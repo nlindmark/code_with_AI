@@ -123,7 +123,12 @@ def load_competitions(competitions_dir: str = "competitions") -> Dict[int, Dict[
                         # Clean up any extra whitespace/newlines
                         level["description"] = level["description"].strip()
                 else:
-                    print(f"⚠️  Warning: Input file '{input_file_path}' not found, skipping")
+                    print(f"⚠️  Warning: Input file '{input_file_path}' not found for level {level_id} in competition {comp_id}")
+            
+            # Check for solution.py file
+            solution_file = level_item / "solution.py"
+            if solution_file.exists():
+                level["solution_file"] = "solution.py"
             
             competition["levels"][level_id] = level
         

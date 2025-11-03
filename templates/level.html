@@ -65,6 +65,23 @@
         </div>
     </form>
     
+    {% if problem.solution_file %}
+    <div style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border-radius: 5px; border-left: 4px solid #ffc107;">
+        <button id="show-solution-btn" 
+                onclick="toggleSolution()" 
+                class="btn" 
+                style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); margin-bottom: 15px;">
+            💡 Visa lösningsprogram
+        </button>
+        <div id="solution-container" style="display: none;">
+            <h4 style="margin-bottom: 10px; color: #333;">Lösningsprogram:</h4>
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd; overflow-x: auto;">
+                <pre id="solution-code" style="margin: 0; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.5; color: #333;"></pre>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
     <div style="margin-top: 30px; padding: 15px; background-color: #e3f2fd; border-radius: 5px; border-left: 4px solid #2196f3;">
         <strong>Tips:</strong> 
         {% if level_id == 1 %}
@@ -90,6 +107,57 @@
     setTimeout(function() {
         window.location.href = '{{ next_url }}';
     }, 2000);
+</script>
+{% endif %}
+
+{% if problem.solution_file %}
+<script>
+    let solutionLoaded = false;
+    let solutionVisible = false;
+    
+    function toggleSolution() {
+        const container = document.getElementById('solution-container');
+        const btn = document.getElementById('show-solution-btn');
+        
+        if (!solutionLoaded) {
+            // Ladda lösningen från servern
+            fetch('{{ url_for("get_solution", competition_id=competition_id, level_id=level_id) }}')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Kunde inte ladda lösningen');
+                    }
+                    return response.text();
+                })
+                .then(code => {
+                    document.getElementById('solution-code').textContent = code;
+                    solutionLoaded = true;
+                    showSolution();
+                })
+                .catch(error => {
+                    document.getElementById('solution-code').textContent = 'Fel vid laddning av lösning: ' + error.message;
+                    showSolution();
+                });
+        } else {
+            // Toggle visibility
+            if (solutionVisible) {
+                hideSolution();
+            } else {
+                showSolution();
+            }
+        }
+    }
+    
+    function showSolution() {
+        document.getElementById('solution-container').style.display = 'block';
+        document.getElementById('show-solution-btn').textContent = '🙈 Dölj lösningsprogram';
+        solutionVisible = true;
+    }
+    
+    function hideSolution() {
+        document.getElementById('solution-container').style.display = 'none';
+        document.getElementById('show-solution-btn').textContent = '💡 Visa lösningsprogram';
+        solutionVisible = false;
+    }
 </script>
 {% endif %}
 {% endblock %}
