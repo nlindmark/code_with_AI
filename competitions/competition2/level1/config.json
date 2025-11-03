@@ -1,0 +1,8 @@
+{
+  "title": "Nivå 1: Räkna konsonanter",
+  "description": "Räkna antalet konsonanter (alla bokstäver som inte är vokaler) i texten: 'Programmering är roligt!'",
+  "input_type": "number",
+  "placeholder": "Ange antal konsonanter",
+  "expected_answer": "15"
+}
+

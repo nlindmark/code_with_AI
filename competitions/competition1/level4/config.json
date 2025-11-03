@@ -1,0 +1,9 @@
+{
+  "title": "Nivå 4: Caesar-chiffer",
+  "description": "Dekryptera denna Caesar-chiffer (shift 7): '{{input}}'",
+  "input_type": "text",
+  "placeholder": "Ange dekrypterad text",
+  "expected_answer": "Hello, World!",
+  "input_file": "secret.txt"
+}
+

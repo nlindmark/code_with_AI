@@ -1,0 +1,9 @@
+There are 42 apples in the basket. We found -5 rotten ones, so we removed them.
+The remaining 37 apples are good quality.
+Later, we added 15 more apples from another batch.
+Now we have 52 total apples.
+But wait, 8 apples were eaten, leaving us with 44.
+We sold 12 of them for 3 dollars each, making 36 dollars profit.
+The final count is 32 apples remaining in storage.
+Earlier today, there were -3 damaged apples that we discarded.
+

@@ -1,0 +1,9 @@
+{
+  "title": "Nivå 4: ROT13-chiffer",
+  "description": "Dekryptera denna ROT13-chiffer: '{{input}}'",
+  "input_type": "text",
+  "placeholder": "Ange dekrypterad text",
+  "expected_answer": "Hello, World!",
+  "input_file": "secret.txt"
+}
+

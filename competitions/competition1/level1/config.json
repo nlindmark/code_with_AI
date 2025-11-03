@@ -1,0 +1,8 @@
+{
+  "title": "Nivå 1: Räkna vokaler",
+  "description": "Räkna antalet vokaler (a, e, i, o, u, y, å, ä, ö) i texten: 'Programmering är roligt!'",
+  "input_type": "number",
+  "placeholder": "Ange antal vokaler",
+  "expected_answer": "7"
+}
+

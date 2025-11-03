@@ -8,6 +8,7 @@ load_dotenv()  # Load environment variables from .env file
 
 from flask import Flask, jsonify, request, send_from_directory, session, redirect, url_for, render_template
 import db
+import competition_loader
 
 app = Flask(__name__)
 
@@ -17,91 +18,8 @@ API_KEY = os.getenv("API_KEY", "default_secret_key_change_me")
 # Sätt session secret key
 app.secret_key = os.getenv("SECRET_KEY", "change_this_secret_key_in_production")
 
-# Competition configurations
-COMPETITIONS = {
-    1: {
-        "name": "Code with AI - Standard",
-        "description": "Standard 5-level competition",
-        "levels": {
-            1: {
-                "title": "Nivå 1: Räkna vokaler",
-                "description": "Räkna antalet vokaler (a, e, i, o, u, y, å, ä, ö) i texten: 'Programmering är roligt!'",
-                "input_type": "number",
-                "placeholder": "Ange antal vokaler",
-                "expected_answer": "7"
-            },
-            2: {
-                "title": "Nivå 2: Summera heltal",
-                "description": "Summera alla heltal i denna text:\n\nThere are 42 apples in the basket. We found -5 rotten ones, so we removed them.\nThe remaining 37 apples are good quality.\nLater, we added 15 more apples from another batch.\nNow we have 52 total apples.\nBut wait, 8 apples were eaten, leaving us with 44.\nWe sold 12 of them for 3 dollars each, making 36 dollars profit.\nThe final count is 32 apples remaining in storage.\nEarlier today, there were -3 damaged apples that we discarded.\nTotal apples processed: 29 + 15 - 8 + 12 - 3 = 45.",
-                "input_type": "number",
-                "placeholder": "Ange summan",
-                "expected_answer": "363"
-            },
-            3: {
-                "title": "Nivå 3: Summa av alla värden",
-                "description": "Från denna CSV:\n\nA,3\nA,4\nA,5\nB,7\nB,7\nB,8\nC,10\nC,20\nD,1\nD,2\nD,3\n\nBeräkna summan av alla värden.",
-                "input_type": "number",
-                "placeholder": "Ange summa av alla värden",
-                "expected_answer": "70"
-            },
-            4: {
-                "title": "Nivå 4: Caesar-chiffer",
-                "description": "Dekryptera denna Caesar-chiffer (shift 7): 'Olssv, Dvysk!'",
-                "input_type": "text",
-                "placeholder": "Ange dekrypterad text",
-                "expected_answer": "Hello, World!"
-            },
-            5: {
-                "title": "Nivå 5: JSON-analys",
-                "description": "Givet denna JSON-data:\n\n{\n  \"items\": [\n    {\"name\": \"A\", \"score\": 10},\n    {\"name\": \"B\", \"score\": 25},\n    {\"name\": \"C\", \"score\": 15}\n  ]\n}\n\nBeräkna summan av alla poäng.",
-                "input_type": "number",
-                "placeholder": "Ange summa av alla poäng",
-                "expected_answer": "50"
-            }
-        }
-    },
-    2: {
-        "name": "Code with AI - Advanced",
-        "description": "Advanced 5-level competition with harder problems",
-        "levels": {
-            1: {
-                "title": "Nivå 1: Räkna konsonanter",
-                "description": "Räkna antalet konsonanter (alla bokstäver som inte är vokaler) i texten: 'Programmering är roligt!'",
-                "input_type": "number",
-                "placeholder": "Ange antal konsonanter",
-                "expected_answer": "15"
-            },
-            2: {
-                "title": "Nivå 2: Multiplicera heltal",
-                "description": "Multiplicera alla positiva heltal i denna text:\n\nWe found 3 boxes with 4 items each.\nThen we added 2 more boxes with 5 items each.\nTotal: 3 * 4 * 2 * 5 = 120.",
-                "input_type": "number",
-                "placeholder": "Ange produkten",
-                "expected_answer": "120"
-            },
-            3: {
-                "title": "Nivå 3: Summa av alla värden",
-                "description": "Från denna CSV:\n\nX,10\nX,20\nX,15\nY,5\nY,8\nY,12\n\nBeräkna summan av alla värden.",
-                "input_type": "number",
-                "placeholder": "Ange summa av alla värden",
-                "expected_answer": "70"
-            },
-            4: {
-                "title": "Nivå 4: ROT13-chiffer",
-                "description": "Dekryptera denna ROT13-chiffer: 'Uryyb, Jbeyq!'",
-                "input_type": "text",
-                "placeholder": "Ange dekrypterad text",
-                "expected_answer": "Hello, World!"
-            },
-            5: {
-                "title": "Nivå 5: Komplex JSON-analys",
-                "description": "Givet denna JSON-data:\n\n{\n  \"data\": [\n    {\"id\": 1, \"value\": 20},\n    {\"id\": 2, \"value\": 30},\n    {\"id\": 3, \"value\": 10}\n  ]\n}\n\nBeräkna summan av alla värden.",
-                "input_type": "number",
-                "placeholder": "Ange summan av alla värden",
-                "expected_answer": "60"
-            }
-        }
-    }
-}
+# Load competitions dynamically from folder structure
+COMPETITIONS = competition_loader.load_competitions()
 
 
 @app.route("/")
@@ -139,7 +57,7 @@ def level(level_id):
     if 'username' not in session:
         return redirect(url_for('login'))
     
-    if level_id < 1 or level_id > 5:
+    if level_id < 1:
         return redirect(url_for('leaderboard'))
     
     username = session['username']
@@ -167,7 +85,7 @@ def level(level_id):
     
     problem = competition["levels"][level_id]
     
-    return render_template('level.html', problem=problem, level_id=level_id, username=username)
+    return render_template('level.html', problem=problem, level_id=level_id, username=username, competition_id=competition_id)
 
 
 @app.route("/submit/<int:level_id>", methods=['POST'])
@@ -176,7 +94,7 @@ def submit(level_id):
     if 'username' not in session:
         return redirect(url_for('login'))
     
-    if level_id < 1 or level_id > 5:
+    if level_id < 1:
         return redirect(url_for('leaderboard'))
     
     username = session['username']
@@ -201,6 +119,7 @@ def submit(level_id):
                              problem=problem, 
                              level_id=level_id, 
                              username=username,
+                             competition_id=competition_id,
                              error="Tävlingen är inte aktiv. Vänta tills tävlingen startar.")
     
     answer = request.form.get('answer', '').strip()
@@ -209,6 +128,7 @@ def submit(level_id):
                                  problem=problem, 
                                  level_id=level_id, 
                                  username=username,
+                                 competition_id=competition_id,
                                  error="Svar krävs")
     
     # Validera svar med expected_answer från competition config
@@ -229,6 +149,7 @@ def submit(level_id):
                              problem=problem, 
                              level_id=level_id, 
                              username=username,
+                             competition_id=competition_id,
                              success=True,
                              next_url=next_url,
                              next_level=next_level)
@@ -237,6 +158,7 @@ def submit(level_id):
                              problem=problem, 
                              level_id=level_id, 
                              username=username,
+                             competition_id=competition_id,
                              error="Felaktigt svar! Försök igen.")
 
 
@@ -252,6 +174,55 @@ def api_leaderboard():
     """Returnerar leaderboard som JSON."""
     leaderboard_data = db.load_leaderboard()
     return jsonify(leaderboard_data)
+
+
+@app.route("/download/<int:competition_id>/<int:level_id>/<filename>")
+def download_input_file(competition_id, level_id, filename):
+    """
+    Laddar ner input-fil för en nivå.
+    Säkerhet: Validerar att tävlingen och nivån finns, och att filnamnet matchar.
+    """
+    # Kontrollera att tävlingen finns
+    if competition_id not in COMPETITIONS:
+        return "Tävling finns inte", 404
+    
+    competition = COMPETITIONS[competition_id]
+    
+    # Kontrollera att nivån finns i tävlingen
+    if level_id not in competition["levels"]:
+        return "Nivå finns inte", 404
+    
+    level = competition["levels"][level_id]
+    
+    # Kontrollera att nivån har en input_file och att filnamnet matchar
+    if "input_file" not in level:
+        return "Ingen input-fil för denna nivå", 404
+    
+    if level["input_file"] != filename:
+        return "Ogiltigt filnamn", 403
+    
+    # Säkerhetskontroll: Filnamnet ska inte innehålla path traversal
+    if ".." in filename or "/" in filename or "\\" in filename:
+        return "Ogiltigt filnamn", 403
+    
+    # Konstruera sökväg till filen
+    from pathlib import Path
+    competitions_dir = Path("competitions")
+    file_path = competitions_dir / f"competition{competition_id}" / f"level{level_id}" / filename
+    
+    # Ytterligare säkerhetskontroll: Verifiera att filen verkligen finns på rätt plats
+    if not file_path.exists() or not file_path.is_file():
+        return "Fil hittades inte", 404
+    
+    # Verifiera att filen är inom competitions-katalogen (prevent path traversal)
+    try:
+        file_path.resolve().relative_to(Path("competitions").resolve())
+    except ValueError:
+        return "Ogiltig fil-sökväg", 403
+    
+    # Servera filen
+    directory = str(file_path.parent)
+    return send_from_directory(directory, filename, as_attachment=True)
 
 
 @app.route("/admin")

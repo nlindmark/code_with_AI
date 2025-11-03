@@ -1,0 +1,139 @@
+"""
+Competition loader - dynamically loads competitions from folder structure.
+
+Scans the competitions/ directory and loads all competition configurations.
+"""
+import os
+import json
+from pathlib import Path
+from typing import Dict, Any
+
+
+def load_competitions(competitions_dir: str = "competitions") -> Dict[int, Dict[str, Any]]:
+    """
+    Loads all competitions from the competitions directory.
+    
+    Args:
+        competitions_dir: Path to competitions directory
+        
+    Returns:
+        Dictionary mapping competition IDs to competition data (same format as old COMPETITIONS)
+    """
+    competitions = {}
+    competitions_path = Path(competitions_dir)
+    
+    if not competitions_path.exists():
+        print(f"⚠️  Warning: Competitions directory '{competitions_dir}' not found")
+        return competitions
+    
+    # Scan for competition folders (competition1, competition2, etc.)
+    for item in competitions_path.iterdir():
+        if not item.is_dir():
+            continue
+            
+        # Check if it's a competition folder (starts with "competition")
+        if not item.name.startswith("competition"):
+            continue
+        
+        try:
+            # Try to extract competition ID from folder name (competition1 -> 1)
+            comp_id_str = item.name.replace("competition", "")
+            comp_id = int(comp_id_str)
+        except ValueError:
+            print(f"⚠️  Warning: Could not parse competition ID from folder '{item.name}'")
+            continue
+        
+        # Load competition config
+        comp_config_path = item / "config.json"
+        if not comp_config_path.exists():
+            print(f"⚠️  Warning: No config.json found in '{item.name}', skipping")
+            continue
+        
+        try:
+            with open(comp_config_path, 'r', encoding='utf-8') as f:
+                comp_config = json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"⚠️  Warning: Invalid JSON in '{comp_config_path}': {e}")
+            continue
+        except Exception as e:
+            print(f"⚠️  Warning: Error reading '{comp_config_path}': {e}")
+            continue
+        
+        # Use ID from config if available, otherwise use folder-based ID
+        comp_id = comp_config.get("id", comp_id)
+        
+        # Build competition structure
+        competition = {
+            "name": comp_config.get("name", f"Competition {comp_id}"),
+            "description": comp_config.get("description", ""),
+            "levels": {}
+        }
+        
+        # Load levels from level folders (level1, level2, etc.)
+        for level_item in sorted(item.iterdir()):
+            if not level_item.is_dir():
+                continue
+            
+            if not level_item.name.startswith("level"):
+                continue
+            
+            try:
+                # Extract level number from folder name (level1 -> 1)
+                level_id_str = level_item.name.replace("level", "")
+                level_id = int(level_id_str)
+            except ValueError:
+                print(f"⚠️  Warning: Could not parse level ID from folder '{level_item.name}' in competition {comp_id}")
+                continue
+            
+            # Load level config
+            level_config_path = level_item / "config.json"
+            if not level_config_path.exists():
+                print(f"⚠️  Warning: No config.json found in '{level_item.name}', skipping")
+                continue
+            
+            try:
+                with open(level_config_path, 'r', encoding='utf-8') as f:
+                    level_config = json.load(f)
+            except json.JSONDecodeError as e:
+                print(f"⚠️  Warning: Invalid JSON in '{level_config_path}': {e}")
+                continue
+            except Exception as e:
+                print(f"⚠️  Warning: Error reading '{level_config_path}': {e}")
+                continue
+            
+            # Build level structure
+            level = {
+                "title": level_config.get("title", f"Level {level_id}"),
+                "description": level_config.get("description", ""),
+                "input_type": level_config.get("input_type", "text"),
+                "placeholder": level_config.get("placeholder", ""),
+                "expected_answer": level_config.get("expected_answer", "")
+            }
+            
+            # Handle input file if specified - store filename for download, don't embed content
+            input_file = level_config.get("input_file")
+            if input_file:
+                input_file_path = level_item / input_file
+                if input_file_path.exists():
+                    # Store input_file info for download functionality
+                    level["input_file"] = input_file
+                    # Remove {{input}} placeholder from description if present
+                    if "{{input}}" in level["description"]:
+                        level["description"] = level["description"].replace("{{input}}", "")
+                        # Clean up any extra whitespace/newlines
+                        level["description"] = level["description"].strip()
+                else:
+                    print(f"⚠️  Warning: Input file '{input_file_path}' not found, skipping")
+            
+            competition["levels"][level_id] = level
+        
+        if not competition["levels"]:
+            print(f"⚠️  Warning: No levels found in competition {comp_id}, skipping")
+            continue
+        
+        competitions[comp_id] = competition
+        print(f"✓ Loaded competition {comp_id}: {competition['name']} ({len(competition['levels'])} levels)")
+    
+    print(f"📊 Loaded {len(competitions)} competition(s)")
+    return competitions
+

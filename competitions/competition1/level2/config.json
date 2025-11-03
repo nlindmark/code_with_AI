@@ -1,0 +1,9 @@
+{
+  "title": "Nivå 2: Summera heltal",
+  "description": "Summera alla heltal i denna text:\n\n{{input}}",
+  "input_type": "number",
+  "placeholder": "Ange summan",
+  "expected_answer": "363",
+  "input_file": "input.txt"
+}
+

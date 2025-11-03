@@ -29,6 +29,17 @@
         <div style="white-space: pre-line; font-family: 'Courier New', monospace; background-color: white; padding: 15px; border-radius: 3px; border: 1px solid #ddd;">
 {{ problem.description }}
         </div>
+        {% if problem.input_file %}
+        <div style="margin-top: 15px; padding: 15px; background-color: #e8f5e9; border-radius: 5px; border-left: 4px solid #4caf50;">
+            <strong>📥 Input-fil:</strong>
+            <p style="margin: 10px 0; color: #666;">Ladda ner input-filen för att bearbeta den med ditt program:</p>
+            <a href="{{ url_for('download_input_file', competition_id=competition_id, level_id=level_id, filename=problem.input_file) }}" 
+               class="btn" 
+               style="background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); margin-top: 10px; display: inline-block;">
+                📥 Ladda ner {{ problem.input_file }}
+            </a>
+        </div>
+        {% endif %}
     </div>
     
     <form method="POST" action="{{ url_for('submit', level_id=level_id) }}">

@@ -1,0 +1,9 @@
+{
+  "title": "Nivå 5: JSON-analys",
+  "description": "Givet denna JSON-data:\n\n{{input}}\n\nBeräkna summan av alla poäng.",
+  "input_type": "number",
+  "placeholder": "Ange summa av alla poäng",
+  "expected_answer": "50",
+  "input_file": "api_stub.json"
+}
+
