@@ -386,17 +386,20 @@ def has_completed_level(user: str, competition_id: int, level: int) -> bool:
     return count > 0
 
 
-def submit_answer(user: str, competition_id: int, level: int, answer: str, expected_answer: str) -> bool:
+def submit_answer(user: str, competition_id: int, level: int, answer: str, expected_answer: str, input_type: str = "text") -> bool:
     """
     Validerar svar för en nivå och sparar om korrekt.
     Returnerar True om svaret var korrekt.
     
     expected_answer ska skickas in från competitions config.
+    input_type ska vara "text" eller "number" från level config.
     """
-    # Jämför svar (case-insensitive för text-svar)
-    if level in [1, 2, 3, 5]:  # Numeriska svar - exakt matchning
+    # Jämför svar baserat på input_type
+    if input_type == "number":
+        # Numeriska svar - exakt matchning (case-sensitive)
         is_correct = answer.strip() == expected_answer
-    else:  # Text-svar - case-insensitive
+    else:
+        # Text-svar - case-insensitive
         is_correct = answer.strip().lower() == expected_answer.lower()
     
     if is_correct:

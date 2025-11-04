@@ -22,6 +22,30 @@ app.secret_key = os.getenv("SECRET_KEY", "change_this_secret_key_in_production")
 COMPETITIONS = competition_loader.load_competitions()
 
 
+@app.context_processor
+def inject_competition_data():
+    """Makes competition data and max_level available to all templates."""
+    try:
+        competition_id = db.get_active_competition_id()
+        if competition_id in COMPETITIONS:
+            competition = COMPETITIONS[competition_id]
+            max_level = max(competition["levels"].keys()) if competition["levels"] else 0
+            return {
+                "competition": competition,
+                "max_level": max_level,
+                "competition_id": competition_id
+            }
+    except Exception:
+        pass
+    
+    # Default values if no competition is available
+    return {
+        "competition": None,
+        "max_level": 0,
+        "competition_id": None
+    }
+
+
 @app.route("/")
 def index():
     """Huvudsida - omdirigera till login eller leaderboard."""
@@ -133,7 +157,8 @@ def submit(level_id):
     
     # Validera svar med expected_answer från competition config
     expected_answer = problem.get("expected_answer", "")
-    is_correct = db.submit_answer(username, competition_id, level_id, answer, expected_answer)
+    input_type = problem.get("input_type", "text")
+    is_correct = db.submit_answer(username, competition_id, level_id, answer, expected_answer, input_type)
     
     if is_correct:
         # Bestäm nästa nivå eller leaderboard
@@ -166,13 +191,26 @@ def submit(level_id):
 def leaderboard():
     """Visar leaderboard."""
     leaderboard_data = db.load_leaderboard()
-    return render_template('leaderboard.html', leaderboard=leaderboard_data)
+    competition_id = db.get_active_competition_id()
+    max_level = 0
+    if competition_id in COMPETITIONS:
+        competition = COMPETITIONS[competition_id]
+        max_level = max(competition["levels"].keys()) if competition["levels"] else 0
+    return render_template('leaderboard.html', leaderboard=leaderboard_data, max_level=max_level)
 
 
 @app.route("/api/leaderboard")
 def api_leaderboard():
     """Returnerar leaderboard som JSON."""
     leaderboard_data = db.load_leaderboard()
+    competition_id = db.get_active_competition_id()
+    max_level = 0
+    if competition_id in COMPETITIONS:
+        competition = COMPETITIONS[competition_id]
+        max_level = max(competition["levels"].keys()) if competition["levels"] else 0
+    # Returnera array för bakåtkompatibilitet, men lägg till max_level i varje entry
+    for entry in leaderboard_data:
+        entry["max_level_total"] = max_level
     return jsonify(leaderboard_data)
 
 

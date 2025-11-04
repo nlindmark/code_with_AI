@@ -88,7 +88,7 @@
             <td class="rank">{{ loop.index }}</td>
             <td class="username">{{ entry.user }}</td>
             <td>
-                <span class="level-badge">{{ entry.max_level }}/5</span>
+                <span class="level-badge">{{ entry.max_level }}/{{ max_level }}</span>
             </td>
             <td class="time">
                 {% if entry.total_ms > 0 %}
@@ -131,6 +131,9 @@
 
 {% block extra_js %}
 <script>
+    // Max level från servern
+    const maxLevel = {{ max_level }};
+    
     // Funktion för att formatera tid i millisekunder till läsbart format
     function formatTime(ms) {
         return Math.round(ms / 1000) + "s";
@@ -163,6 +166,9 @@
                 const table = document.querySelector('.leaderboard-table');
                 const noDataDiv = document.querySelector('.no-data');
                 
+                // Hämta max_level från första entry om det finns, annars använd template variabel
+                const currentMaxLevel = (data && data.length > 0 && data[0].max_level_total) ? data[0].max_level_total : maxLevel;
+                
                 if (!data || data.length === 0) {
                     // Visa "no data" meddelande om det inte finns data
                     if (table && table.offsetParent !== null) {
@@ -179,11 +185,12 @@
                     // Uppdatera tabellens innehåll
                     if (tbody) {
                         tbody.innerHTML = data.map((entry, index) => {
+                            const entryMaxLevel = entry.max_level_total || currentMaxLevel;
                             return `
                                 <tr>
                                     <td class="rank">${index + 1}</td>
                                     <td class="username">${escapeHtml(entry.user)}</td>
-                                    <td><span class="level-badge">${entry.max_level}/5</span></td>
+                                    <td><span class="level-badge">${entry.max_level}/${entryMaxLevel}</span></td>
                                     <td class="time">${formatTime(entry.total_ms)}</td>
                                     <td>${formatLevelDetails(entry.levels)}</td>
                                 </tr>

@@ -6,9 +6,7 @@ import json
 import sys
 from pathlib import Path
 
-# Add competition3 directory to path to import can_parser
-competition3_dir = Path(__file__).parent / "competitions" / "competition3"
-sys.path.insert(0, str(competition3_dir))
+# Import can_parser from the same directory
 from can_parser import (
     parse_busmaster_log,
     count_unique_can_ids,
@@ -89,9 +87,11 @@ def update_level3_config(log_file: str, config_path: Path):
 
 def main():
     """Main function to generate answers for all levels."""
-    base_dir = Path(__file__).parent
-    competition_dir = base_dir / "competitions" / "competition3"
-    log_file = base_dir / "VBG_CAN_Log.log"
+    # Script is now in competitions/competition3/
+    competition_dir = Path(__file__).parent
+    # Log file is in root directory
+    root_dir = Path(__file__).parent.parent.parent
+    log_file = root_dir / "VBG_CAN_Log.log"
     
     if not log_file.exists():
         print(f"Error: CAN log file not found at {log_file}")
@@ -123,4 +123,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

@@ -169,7 +169,7 @@
     <div class="header">
         <div class="container">
             <h1>🏆 Code with AI</h1>
-            <p>Kodningstävling med 5 progressivt svårare nivåer</p>
+            <p>Kodningstävling{% if max_level > 0 %} med {{ max_level }} progressivt svårare nivåer{% endif %}</p>
         </div>
     </div>
     
@@ -178,11 +178,11 @@
         <div class="container">
             <ul>
                 <li><a href="{{ url_for('leaderboard') }}">Leaderboard</a></li>
-                <li><a href="{{ url_for('level', level_id=1) }}">Nivå 1</a></li>
-                <li><a href="{{ url_for('level', level_id=2) }}">Nivå 2</a></li>
-                <li><a href="{{ url_for('level', level_id=3) }}">Nivå 3</a></li>
-                <li><a href="{{ url_for('level', level_id=4) }}">Nivå 4</a></li>
-                <li><a href="{{ url_for('level', level_id=5) }}">Nivå 5</a></li>
+                {% if max_level > 0 %}
+                    {% for level_num in range(1, max_level + 1) %}
+                        <li><a href="{{ url_for('level', level_id=level_num) }}">Nivå {{ level_num }}</a></li>
+                    {% endfor %}
+                {% endif %}
                 <li><a href="{{ url_for('logout') }}">Logga ut ({{ session.username }})</a></li>
             </ul>
         </div>

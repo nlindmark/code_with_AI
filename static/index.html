@@ -85,10 +85,13 @@
 
         // Funktion för att uppdatera leaderboard-tabellen
         function updateLeaderboard() {
-            fetch('/leaderboard')
+            fetch('/api/leaderboard')
                 .then(response => response.json())
                 .then(data => {
                     const tbody = document.getElementById('leaderboardBody');
+                    
+                    // Hämta max_level från första entry om det finns
+                    const maxLevel = (data && data.length > 0 && data[0].max_level_total) ? data[0].max_level_total : 5;
                     
                     if (data.length === 0) {
                         tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">Inga resultat ännu</td></tr>';
@@ -100,7 +103,7 @@
                             <tr>
                                 <td class="rank">${index + 1}</td>
                                 <td>${escapeHtml(entry.user)}</td>
-                                <td>${entry.max_level} / 5</td>
+                                <td>${entry.max_level} / ${maxLevel}</td>
                                 <td class="time">${formatTime(entry.total_ms)}</td>
                             </tr>
                         `;
