@@ -63,6 +63,83 @@ Servern startar på http://127.0.0.1:5000/
 
 Öppna webbläsaren och gå till http://127.0.0.1:5000/ för att se leaderboard.
 
+## 🌐 Multi-Machine Setup
+
+För att köra tävlingen från flera maskiner (en server + flera klientmaskiner):
+
+### Server-maskin
+
+1. **Starta servern**:
+   ```bash
+   python main.py
+   ```
+
+2. **Servern kommer automatiskt att:**
+   - Bindas till `0.0.0.0` (tillgänglig från alla nätverksgränssnitt)
+   - Visa både lokal och nätverks-IP-adress vid start
+   - Visa URL som deltagare ska använda
+
+3. **Exempel på utskrift vid start:**
+   ```
+   ============================================================
+   🚀 Server startar på port 5000
+   ============================================================
+   📍 Lokal åtkomst:
+      http://127.0.0.1:5000/
+      http://localhost:5000/
+
+   🌐 Nätverksåtkomst:
+      http://192.168.1.100:5000/
+
+   💡 Dela denna URL med deltagare:
+      http://192.168.1.100:5000/
+
+   📊 Leaderboard: http://127.0.0.1:5000/leaderboard
+   ============================================================
+   ```
+
+4. **Konfigurera brandvägg (om nödvändigt):**
+   - Se till att port 5000 (eller den port du använder) är öppen i brandväggen
+   - Linux: `sudo ufw allow 5000` eller konfigurera iptables
+   - Windows: Öppna port i Windows Firewall-inställningar
+   - macOS: Konfigurera i Systeminställningar → Säkerhet
+
+5. **Anpassa host/port (valfritt):**
+   - Sätt miljövariabel `FLASK_HOST` för att ändra host (standard: `0.0.0.0`)
+   - Sätt miljövariabel `FLASK_PORT` för att ändra port (standard: `5000`)
+   ```bash
+   export FLASK_HOST=0.0.0.0
+   export FLASK_PORT=5000
+   ```
+
+### Klientmaskiner
+
+**Ingen konfiguration behövs!** Deltagare behöver bara:
+
+1. **Öppna webbläsare** på klientmaskinen
+2. **Gå till serverns URL** (t.ex. `http://192.168.1.100:5000/`)
+3. **Logga in** med användarnamn och börja tävla
+
+Serverns URL visas tydligt när servern startar - dela denna URL med alla deltagare.
+
+### Felsökning
+
+- **Klienter kan inte ansluta:**
+  - Kontrollera att servern körs och är bunden till `0.0.0.0`
+  - Kontrollera att brandväggen tillåter trafik på port 5000
+  - Verifiera att båda maskinerna är på samma nätverk
+  - Testa att pinga serverns IP från klientmaskinen
+
+- **Servern visar inte nätverks-IP:**
+  - Kontrollera nätverksinställningar på servern
+  - Du kan manuellt hitta IP-adressen med:
+    - Linux/Mac: `hostname -I` eller `ifconfig`
+    - Windows: `ipconfig`
+
+- **Port redan i bruk:**
+  - Ändra port med miljövariabel: `export FLASK_PORT=5001`
+  - Eller stoppa den process som använder porten
+
 ### Kör en nivå
 
 För att testa och skicka in resultat för en nivå:

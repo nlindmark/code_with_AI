@@ -3,6 +3,7 @@ Flask-server för leaderboard och resultathantering.
 Sätter upp API-endpoints för att visa leaderboard och ta emot resultat.
 """
 import os
+import socket
 from dotenv import load_dotenv
 load_dotenv()  # Load environment variables from .env file
 
@@ -466,6 +467,19 @@ def reset():
     return jsonify({"success": True, "message": "Alla resultat raderade"})
 
 
+def get_network_ip():
+    """Hämtar serverns nätverks-IP-adress."""
+    try:
+        # Anslut till en extern adress för att få lokal IP
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return None
+
+
 if __name__ == "__main__":
     # Initiera databas vid start
     db.init_db()
@@ -473,8 +487,31 @@ if __name__ == "__main__":
     # Initiera tävlingar i databasen
     db.init_competitions(COMPETITIONS)
     
+    # Läs host och port från miljövariabler
+    flask_host = os.getenv("FLASK_HOST", "0.0.0.0")
+    flask_port = int(os.getenv("FLASK_PORT", "5000"))
+    
+    # Hämta nätverks-IP
+    network_ip = get_network_ip()
+    
     # Starta Flask-server
-    print(f"🚀 Server startar på http://127.0.0.1:5000/")
-    print(f"📊 Leaderboard: http://127.0.0.1:5000/leaderboard")
-    app.run(debug=True, host="127.0.0.1", port=5000)
+    print(f"\n{'='*60}")
+    print(f"🚀 Server startar på port {flask_port}")
+    print(f"{'='*60}")
+    print(f"📍 Lokal åtkomst:")
+    print(f"   http://127.0.0.1:{flask_port}/")
+    print(f"   http://localhost:{flask_port}/")
+    
+    if network_ip:
+        print(f"\n🌐 Nätverksåtkomst:")
+        print(f"   http://{network_ip}:{flask_port}/")
+        print(f"\n💡 Dela denna URL med deltagare:")
+        print(f"   http://{network_ip}:{flask_port}/")
+    else:
+        print(f"\n⚠️  Kunde inte hitta nätverks-IP. Kontrollera nätverksinställningar.")
+    
+    print(f"\n📊 Leaderboard: http://127.0.0.1:{flask_port}/leaderboard")
+    print(f"{'='*60}\n")
+    
+    app.run(debug=True, host=flask_host, port=flask_port)
 
