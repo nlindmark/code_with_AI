@@ -140,20 +140,6 @@ Serverns URL visas tydligt när servern startar - dela denna URL med alla deltag
   - Ändra port med miljövariabel: `export FLASK_PORT=5001`
   - Eller stoppa den process som använder porten
 
-### Kör en nivå
-
-För att testa och skicka in resultat för en nivå:
-
-```bash
-python levels/level1/verify.py
-python levels/level2/verify.py
-# ... osv
-```
-
-Varje `verify.py` kommer:
-1. Köra testfall för att verifiera din lösning
-2. Mäta exekveringstiden
-3. Skicka resultatet till servern
 
 ## 📁 Projektstruktur
 
@@ -162,29 +148,21 @@ code-with-ai/
 ├── main.py                  # Flask-server (leaderboard API)
 ├── db.py                    # Databaslager (SQLite3)
 ├── common.py                # Gemensamma verktyg (timing + submission)
+├── competition_loader.py    # Laddar tävlingar från competitions/
 ├── static/
 │   └── index.html          # Leaderboard UI
-├── levels/
-│   ├── level1/
-│   │   ├── solution.py     # Din lösning här
-│   │   └── verify.py       # Verifieringsskript
-│   ├── level2/
-│   │   ├── input.txt
-│   │   ├── solution.py
-│   │   └── verify.py
-│   ├── level3/
-│   │   ├── data.csv
-│   │   ├── solution.py
-│   │   └── verify.py
-│   ├── level4/
-│   │   ├── secret.txt
-│   │   ├── solution.py
-│   │   └── verify.py
-│   └── level5/
-│       ├── api_stub.json
-│       ├── template.md
-│       ├── solution.py
-│       └── verify.py
+├── templates/              # HTML-mallar för UI
+├── competitions/
+│   ├── competition1/
+│   │   ├── config.json     # Tävlingskonfiguration
+│   │   ├── level1/
+│   │   │   ├── config.json # Nivåkonfiguration
+│   │   │   ├── solution.py # Exempel-lösning (valfritt)
+│   │   │   └── [datafiler] # Input-filer om nödvändigt
+│   │   └── level2/
+│   │       └── ...
+│   └── competition2/
+│       └── ...
 ├── requirements.txt
 └── README.md
 ```
@@ -244,19 +222,34 @@ Kräver header: `X-API-Key: <din_api_key>`
 ### GET /reset
 Raderar alla resultat. Kräver `X-API-Key` header.
 
-## 📝 Lägga till nya nivåer
+## 📝 Lägga till nya tävlingar och nivåer
 
-1. Skapa en ny mapp under `levels/` (t.ex. `level6/`)
-2. Kopiera strukturen från en befintlig nivå:
-   - `solution.py` - implementera lösningsfunktionen
-   - `verify.py` - verifiera och skicka resultat
-   - Eventuella datafiler (txt, csv, json, etc.)
-3. I `verify.py`:
-   - Importera `time_exec` och `submit_result` från `common`
-   - Läs miljövariabler: `AI_CODE_USER`, `UPDATE_URL`, `API_KEY`
-   - Kör testfall och verifiera korrekthet
-   - Mät tid med `time_exec()`
-   - Skicka resultat med `submit_result(user, level, ms, update_url, api_key)`
+Tävlingar laddas automatiskt från `competitions/`-mappen. Varje tävling har en egen mapp med en `config.json` och nivåer i undermappar.
+
+### Skapa en ny tävling
+
+1. Skapa en ny mapp under `competitions/` (t.ex. `competition5/`)
+2. Skapa `config.json` med tävlingsinformation:
+   ```json
+   {
+     "id": "uuid-here",
+     "name": "Tävlingsnamn",
+     "description": "Beskrivning"
+   }
+   ```
+
+### Lägga till nivåer i en tävling
+
+1. Skapa en nivå-mapp (t.ex. `level1/`, `level2/`, etc.) i tävlingsmappen
+2. Skapa `config.json` för nivån med:
+   - `title`: Nivåns titel
+   - `description`: Problembeskrivning
+   - `input_type`: "text" eller "number"
+   - `placeholder`: Text för input-fält
+   - `expected_answer`: Rätt svar (som sträng)
+   - `input_file`: Valfritt - filnamn om nivån har en input-fil
+3. Lägg till eventuella datafiler i nivå-mappen
+4. Lägg till `solution.py` (valfritt) som exempel-lösning
 
 ## 🔐 Miljövariabler
 
