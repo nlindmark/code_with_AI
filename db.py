@@ -1,6 +1,7 @@
 """
 Databaslager för att lagra tävlingsresultat.
 Använder SQLite3 för att spara bästa tid per nivå för varje användare.
+Supports UUID-based competition IDs.
 """
 import sqlite3
 import os
@@ -15,10 +16,10 @@ def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    # Skapa tabell för tävlingar
+    # Skapa tabell för tävlingar (with TEXT id for UUIDs)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS competitions (
-            id INTEGER PRIMARY KEY,
+            id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
             description TEXT
         )
@@ -28,7 +29,7 @@ def init_db():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS results (
             user TEXT NOT NULL,
-            competition_id INT NOT NULL,
+            competition_id TEXT NOT NULL,
             level INT NOT NULL,
             best_ms INT NOT NULL,
             ts INT NOT NULL,
@@ -39,7 +40,7 @@ def init_db():
     # Skapa tabell för tävlingsstatus
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS competition_state (
-            competition_id INT PRIMARY KEY,
+            competition_id TEXT PRIMARY KEY,
             is_active BOOLEAN DEFAULT FALSE,
             start_time INT DEFAULT 0
         )
@@ -50,7 +51,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS submissions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user TEXT NOT NULL,
-            competition_id INT NOT NULL,
+            competition_id TEXT NOT NULL,
             level INT NOT NULL,
             ms INT NOT NULL,
             timestamp INT NOT NULL,
@@ -58,52 +59,21 @@ def init_db():
         )
     """)
     
-    # Migration: Lägg till competition_id kolumner om de saknas
-    try:
-        cursor.execute("ALTER TABLE results ADD COLUMN competition_id INT DEFAULT 1")
-    except sqlite3.OperationalError:
-        pass  # Kolumnen finns redan
-    
-    try:
-        cursor.execute("ALTER TABLE submissions ADD COLUMN competition_id INT DEFAULT 1")
-    except sqlite3.OperationalError:
-        pass  # Kolumnen finns redan
-    
-    # Migration: Uppdatera competition_state om den har gammal struktur
-    cursor.execute("PRAGMA table_info(competition_state)")
-    columns = [col[1] for col in cursor.fetchall()]
-    if 'id' in columns and 'competition_id' not in columns:
-        # Migrera från gammal struktur
-        cursor.execute("DROP TABLE IF EXISTS competition_state_old")
-        cursor.execute("ALTER TABLE competition_state RENAME TO competition_state_old")
-        cursor.execute("""
-            CREATE TABLE competition_state (
-                competition_id INT PRIMARY KEY,
-                is_active BOOLEAN DEFAULT FALSE,
-                start_time INT DEFAULT 0
-            )
-        """)
-        cursor.execute("""
-            INSERT INTO competition_state (competition_id, is_active, start_time)
-            SELECT 1, is_active, start_time FROM competition_state_old WHERE id = 1
-        """)
-        cursor.execute("DROP TABLE competition_state_old")
-    
-    # Sätt initial tävlingsstatus om den inte finns
-    cursor.execute("SELECT COUNT(*) FROM competition_state WHERE competition_id = 1")
-    if cursor.fetchone()[0] == 0:
-        cursor.execute("INSERT INTO competition_state (competition_id, is_active, start_time) VALUES (1, FALSE, 0)")
-    
     conn.commit()
     conn.close()
 
 
-def init_competitions(competitions_config: Dict[int, Dict[str, Any]]):
+def init_competitions(competitions_config: Dict[str, Dict[str, Any]]):
     """Initierar tävlingar i databasen från konfiguration."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
+    # Process competitions from config
     for comp_id, comp_data in competitions_config.items():
+        # Ensure comp_id is a string
+        if not isinstance(comp_id, str):
+            comp_id = str(comp_id)
+        
         # Kontrollera om tävlingen redan finns
         cursor.execute("SELECT id FROM competitions WHERE id = ?", (comp_id,))
         exists = cursor.fetchone()
@@ -125,7 +95,7 @@ def init_competitions(competitions_config: Dict[int, Dict[str, Any]]):
     conn.close()
 
 
-def get_active_competition_id() -> int:
+def get_active_competition_id() -> Optional[str]:
     """Hämtar ID för den valda tävlingen (startad eller ej)."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -139,15 +109,15 @@ def get_active_competition_id() -> int:
         return row[0]
     
     # Om ingen är startad, hitta den senast skapade/uppdaterade tävlingen (den valda)
-    # Använd den högsta competition_id som finns i tabellen
-    cursor.execute("SELECT competition_id FROM competition_state ORDER BY competition_id DESC LIMIT 1")
+    # Get first competition from competitions table
+    cursor.execute("SELECT id FROM competitions ORDER BY id LIMIT 1")
     row = cursor.fetchone()
     conn.close()
     
     if row:
         return row[0]
     
-    return 1  # Default till tävling 1 om ingen finns
+    return None  # No competition found
 
 
 def get_all_competitions() -> List[Dict[str, Any]]:
@@ -155,14 +125,14 @@ def get_all_competitions() -> List[Dict[str, Any]]:
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
-    cursor.execute("SELECT id, name, description FROM competitions ORDER BY id")
+    cursor.execute("SELECT id, name, description FROM competitions ORDER BY name")
     rows = cursor.fetchall()
     conn.close()
     
     return [{"id": row[0], "name": row[1], "description": row[2]} for row in rows]
 
 
-def save_result(user: str, competition_id: int, level: int, ms: int) -> bool:
+def save_result(user: str, competition_id: str, level: int, ms: int) -> bool:
     """
     Sparar eller uppdaterar resultat om den nya tiden är bättre.
     Returnerar True om tiden förbättrades eller var första försöket.
@@ -202,7 +172,7 @@ def save_result(user: str, competition_id: int, level: int, ms: int) -> bool:
     return improved
 
 
-def load_leaderboard(competition_id: int = None) -> List[Dict[str, Any]]:
+def load_leaderboard(competition_id: Optional[str] = None) -> List[Dict[str, Any]]:
     """
     Läser in alla resultat och bygger leaderboard-strukturen.
     Sorterar efter: högsta nivå → lägsta totaltid → tidigaste tidsstämpel.
@@ -281,7 +251,7 @@ def load_leaderboard(competition_id: int = None) -> List[Dict[str, Any]]:
     return leaderboard
 
 
-def get_competition_state(competition_id: int = None) -> Dict[str, Any]:
+def get_competition_state(competition_id: Optional[str] = None) -> Dict[str, Any]:
     """Hämtar tävlingsstatus för en specifik tävling eller aktiv tävling."""
     if competition_id is None:
         competition_id = get_active_competition_id()
@@ -302,7 +272,7 @@ def get_competition_state(competition_id: int = None) -> Dict[str, Any]:
     return {"competition_id": competition_id, "is_active": False, "start_time": 0}
 
 
-def set_competition_state(competition_id: int, is_active: bool, start_time: int = 0):
+def set_competition_state(competition_id: str, is_active: bool, start_time: int = 0):
     """
     Sätter tävlingsstatus för en specifik tävling.
     Om start_time är 0 och raden redan finns, behåller vi det befintliga start_time.
@@ -341,7 +311,7 @@ def set_competition_state(competition_id: int, is_active: bool, start_time: int 
     conn.close()
 
 
-def set_active_competition(competition_id: int):
+def set_active_competition(competition_id: str):
     """Sätter en tävling som vald (men startar den inte)."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -371,7 +341,7 @@ def set_active_competition(competition_id: int):
     conn.close()
 
 
-def has_completed_level(user: str, competition_id: int, level: int) -> bool:
+def has_completed_level(user: str, competition_id: str, level: int) -> bool:
     """Kontrollerar om en användare har slutfört en specifik nivå i en tävling."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -386,7 +356,7 @@ def has_completed_level(user: str, competition_id: int, level: int) -> bool:
     return count > 0
 
 
-def submit_answer(user: str, competition_id: int, level: int, answer: str, expected_answer: str, input_type: str = "text") -> bool:
+def submit_answer(user: str, competition_id: str, level: int, answer: str, expected_answer: str, input_type: str = "text") -> bool:
     """
     Validerar svar för en nivå och sparar om korrekt.
     Returnerar True om svaret var korrekt.
