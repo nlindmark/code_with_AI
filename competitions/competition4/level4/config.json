@@ -1,0 +1,7 @@
+{
+  "title": "Level 4: The Golden Ratio Challenge",
+  "description": "The Fibonacci sequence has a fascinating property: the ratio of consecutive Fibonacci numbers approaches the Golden Ratio (φ ≈ 1.618033988749895).\n\nConsider the Fibonacci sequence from F(1) to F(50). Count how many pairs of consecutive Fibonacci numbers (F(n+1)/F(n)) have a ratio that rounds to EXACTLY 1.618 when rounded to 3 decimal places.\n\nFor example:\n- F(6)/F(5) = 8/5 = 1.600 (rounds to 1.600, NOT 1.618)\n- F(14)/F(13) = 377/233 = 1.618... (rounds to 1.618, COUNTS)\n\nHow many such pairs exist from F(1) through F(50)?",
+  "input_type": "number",
+  "placeholder": "Enter the count",
+  "expected_answer": "41"
+}

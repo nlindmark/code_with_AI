@@ -2,14 +2,16 @@
 Competition loader - dynamically loads competitions from folder structure.
 
 Scans the competitions/ directory and loads all competition configurations.
+Supports UUID-based competition IDs and any folder name.
 """
 import os
 import json
+import uuid
 from pathlib import Path
 from typing import Dict, Any
 
 
-def load_competitions(competitions_dir: str = "competitions") -> Dict[int, Dict[str, Any]]:
+def load_competitions(competitions_dir: str = "competitions") -> Dict[str, Dict[str, Any]]:
     """
     Loads all competitions from the competitions directory.
     
@@ -17,7 +19,7 @@ def load_competitions(competitions_dir: str = "competitions") -> Dict[int, Dict[
         competitions_dir: Path to competitions directory
         
     Returns:
-        Dictionary mapping competition IDs to competition data (same format as old COMPETITIONS)
+        Dictionary mapping competition UUIDs (strings) to competition data
     """
     competitions = {}
     competitions_path = Path(competitions_dir)
@@ -26,21 +28,13 @@ def load_competitions(competitions_dir: str = "competitions") -> Dict[int, Dict[
         print(f"⚠️  Warning: Competitions directory '{competitions_dir}' not found")
         return competitions
     
-    # Scan for competition folders (competition1, competition2, etc.)
+    # Scan for competition folders (any folder name)
     for item in competitions_path.iterdir():
         if not item.is_dir():
             continue
-            
-        # Check if it's a competition folder (starts with "competition")
-        if not item.name.startswith("competition"):
-            continue
         
-        try:
-            # Try to extract competition ID from folder name (competition1 -> 1)
-            comp_id_str = item.name.replace("competition", "")
-            comp_id = int(comp_id_str)
-        except ValueError:
-            print(f"⚠️  Warning: Could not parse competition ID from folder '{item.name}'")
+        # Skip hidden directories
+        if item.name.startswith('.'):
             continue
         
         # Load competition config
@@ -59,13 +53,28 @@ def load_competitions(competitions_dir: str = "competitions") -> Dict[int, Dict[
             print(f"⚠️  Warning: Error reading '{comp_config_path}': {e}")
             continue
         
-        # Use ID from config if available, otherwise use folder-based ID
-        comp_id = comp_config.get("id", comp_id)
+        # Get or generate UUID
+        comp_id = comp_config.get("id")
+        if comp_id is None:
+            # Generate UUID if not present
+            comp_id = str(uuid.uuid4())
+            print(f"⚠️  Warning: No 'id' field in '{comp_config_path}', generated UUID: {comp_id}")
+        else:
+            # Ensure ID is a string (UUID)
+            comp_id = str(comp_id)
+        
+        # Validate UUID format
+        try:
+            uuid.UUID(comp_id)
+        except ValueError:
+            print(f"⚠️  Warning: Invalid UUID format '{comp_id}' in '{comp_config_path}', skipping")
+            continue
         
         # Build competition structure
         competition = {
-            "name": comp_config.get("name", f"Competition {comp_id}"),
+            "name": comp_config.get("name", f"Competition {comp_id[:8]}"),
             "description": comp_config.get("description", ""),
+            "folder_name": item.name,  # Store folder name for file path construction
             "levels": {}
         }
         
@@ -82,7 +91,7 @@ def load_competitions(competitions_dir: str = "competitions") -> Dict[int, Dict[
                 level_id_str = level_item.name.replace("level", "")
                 level_id = int(level_id_str)
             except ValueError:
-                print(f"⚠️  Warning: Could not parse level ID from folder '{level_item.name}' in competition {comp_id}")
+                print(f"⚠️  Warning: Could not parse level ID from folder '{level_item.name}' in competition {comp_id[:8]}")
                 continue
             
             # Load level config
@@ -123,7 +132,7 @@ def load_competitions(competitions_dir: str = "competitions") -> Dict[int, Dict[
                         # Clean up any extra whitespace/newlines
                         level["description"] = level["description"].strip()
                 else:
-                    print(f"⚠️  Warning: Input file '{input_file_path}' not found for level {level_id} in competition {comp_id}")
+                    print(f"⚠️  Warning: Input file '{input_file_path}' not found for level {level_id} in competition {comp_id[:8]}")
             
             # Check for solution.py file
             solution_file = level_item / "solution.py"
@@ -133,11 +142,11 @@ def load_competitions(competitions_dir: str = "competitions") -> Dict[int, Dict[
             competition["levels"][level_id] = level
         
         if not competition["levels"]:
-            print(f"⚠️  Warning: No levels found in competition {comp_id}, skipping")
+            print(f"⚠️  Warning: No levels found in competition {comp_id[:8]}, skipping")
             continue
         
         competitions[comp_id] = competition
-        print(f"✓ Loaded competition {comp_id}: {competition['name']} ({len(competition['levels'])} levels)")
+        print(f"✓ Loaded competition {comp_id[:8]}...: {competition['name']} ({len(competition['levels'])} levels)")
     
     print(f"📊 Loaded {len(competitions)} competition(s)")
     return competitions

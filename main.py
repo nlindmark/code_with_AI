@@ -28,7 +28,7 @@ def inject_competition_data():
     """Makes competition data and max_level available to all templates."""
     try:
         competition_id = db.get_active_competition_id()
-        if competition_id in COMPETITIONS:
+        if competition_id and competition_id in COMPETITIONS:
             competition = COMPETITIONS[competition_id]
             max_level = max(competition["levels"].keys()) if competition["levels"] else 0
             return {
@@ -89,7 +89,7 @@ def level(level_id):
     competition_id = db.get_active_competition_id()
     
     # Kontrollera att tävlingen finns
-    if competition_id not in COMPETITIONS:
+    if not competition_id or competition_id not in COMPETITIONS:
         return redirect(url_for('leaderboard'))
     
     competition = COMPETITIONS[competition_id]
@@ -126,7 +126,7 @@ def submit(level_id):
     competition_id = db.get_active_competition_id()
     
     # Kontrollera att tävlingen finns
-    if competition_id not in COMPETITIONS:
+    if not competition_id or competition_id not in COMPETITIONS:
         return redirect(url_for('leaderboard'))
     
     competition = COMPETITIONS[competition_id]
@@ -194,7 +194,7 @@ def leaderboard():
     leaderboard_data = db.load_leaderboard()
     competition_id = db.get_active_competition_id()
     max_level = 0
-    if competition_id in COMPETITIONS:
+    if competition_id and competition_id in COMPETITIONS:
         competition = COMPETITIONS[competition_id]
         max_level = max(competition["levels"].keys()) if competition["levels"] else 0
     return render_template('leaderboard.html', leaderboard=leaderboard_data, max_level=max_level)
@@ -206,7 +206,7 @@ def api_leaderboard():
     leaderboard_data = db.load_leaderboard()
     competition_id = db.get_active_competition_id()
     max_level = 0
-    if competition_id in COMPETITIONS:
+    if competition_id and competition_id in COMPETITIONS:
         competition = COMPETITIONS[competition_id]
         max_level = max(competition["levels"].keys()) if competition["levels"] else 0
     # Returnera array för bakåtkompatibilitet, men lägg till max_level i varje entry
@@ -215,7 +215,7 @@ def api_leaderboard():
     return jsonify(leaderboard_data)
 
 
-@app.route("/download/<int:competition_id>/<int:level_id>/<filename>")
+@app.route("/download/<string:competition_id>/<int:level_id>/<filename>")
 def download_input_file(competition_id, level_id, filename):
     """
     Laddar ner input-fil för en nivå.
@@ -244,10 +244,10 @@ def download_input_file(competition_id, level_id, filename):
     if ".." in filename or "/" in filename or "\\" in filename:
         return "Ogiltigt filnamn", 403
     
-    # Konstruera sökväg till filen
+    # Konstruera sökväg till filen (use folder_name from competition)
     from pathlib import Path
     competitions_dir = Path("competitions")
-    file_path = competitions_dir / f"competition{competition_id}" / f"level{level_id}" / filename
+    file_path = competitions_dir / competition["folder_name"] / f"level{level_id}" / filename
     
     # Ytterligare säkerhetskontroll: Verifiera att filen verkligen finns på rätt plats
     if not file_path.exists() or not file_path.is_file():
@@ -264,7 +264,7 @@ def download_input_file(competition_id, level_id, filename):
     return send_from_directory(directory, filename, as_attachment=True)
 
 
-@app.route("/solution/<int:competition_id>/<int:level_id>")
+@app.route("/solution/<string:competition_id>/<int:level_id>")
 def get_solution(competition_id, level_id):
     """
     Hämtar lösningsprogrammet för en nivå.
@@ -287,10 +287,10 @@ def get_solution(competition_id, level_id):
     if "solution_file" not in level:
         return "Ingen lösning finns för denna nivå", 404
     
-    # Konstruera sökväg till solution.py
+    # Konstruera sökväg till solution.py (use folder_name from competition)
     from pathlib import Path
     competitions_dir = Path("competitions")
-    solution_path = competitions_dir / f"competition{competition_id}" / f"level{level_id}" / "solution.py"
+    solution_path = competitions_dir / competition["folder_name"] / f"level{level_id}" / "solution.py"
     
     # Säkerhetskontroll: Verifiera att filen verkligen finns på rätt plats
     if not solution_path.exists() or not solution_path.is_file():
@@ -353,6 +353,9 @@ def admin_start():
         return jsonify({"error": "Ogiltig API-nyckel"}), 403
     
     competition_id = db.get_active_competition_id()
+    if not competition_id:
+        return jsonify({"error": "Ingen aktiv tävling"}), 400
+    
     import time
     start_time = int(time.time())
     db.set_competition_state(competition_id, True, start_time)
@@ -368,6 +371,9 @@ def admin_stop():
         return jsonify({"error": "Ogiltig API-nyckel"}), 403
     
     competition_id = db.get_active_competition_id()
+    if not competition_id:
+        return jsonify({"error": "Ingen aktiv tävling"}), 400
+    
     # Behåll start_time när vi stoppar - sätt bara is_active till False
     current_state = db.get_competition_state(competition_id)
     existing_start_time = current_state.get("start_time", 0)
@@ -424,6 +430,9 @@ def update():
     competition_id = db.get_active_competition_id()
     
     # Kontrollera att tävlingen är aktiv
+    if not competition_id:
+        return jsonify({"error": "Ingen aktiv tävling"}), 400
+    
     competition_state = db.get_competition_state(competition_id)
     if not competition_state.get("is_active", False):
         return jsonify({"error": "Tävlingen är inte aktiv"}), 403

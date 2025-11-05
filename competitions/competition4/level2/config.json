@@ -1,0 +1,7 @@
+{
+  "title": "Level 2: Even Fibonacci Sum",
+  "description": "Consider the Fibonacci sequence up to the 20th term:\n\n0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765\n\nWhat is the sum of all EVEN Fibonacci numbers up to and including F(20)?",
+  "input_type": "number",
+  "placeholder": "Enter the sum of even Fibonacci numbers",
+  "expected_answer": "3382"
+}

@@ -1,0 +1,8 @@
+{
+  "title": "Level 3: Fibonacci Indices Challenge",
+  "description": "You are given a file with several indices. Calculate the Fibonacci number at each index and return the SUM of all those Fibonacci numbers.\n\nIndices in the file:\n\n{{input}}\n\nWhat is the sum of F(15) + F(25) + F(30) + F(12) + F(18)?",
+  "input_type": "number",
+  "placeholder": "Enter the sum",
+  "expected_answer": "910403",
+  "input_file": "indices.txt"
+}

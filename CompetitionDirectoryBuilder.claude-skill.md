@@ -1,11 +1,6 @@
-# Competition Directory Builder Skill
-
-## Skill Metadata
-- **Name**: Competition Directory Builder
-- **Purpose**: Assist users in creating competition directories for the Code with AI system
-- **Version**: 1.0
-- **Context**: This skill helps users build properly structured competition directories that are automatically discovered and loaded by the system
-
+---
+name: ai-competition-directory-builder
+description: Create and validate competition directory structures for Code with AI system, including config.json files with UUID-based competition IDs
 ---
 
 ## Core Instructions for Claude
@@ -19,7 +14,8 @@ You are an expert assistant helping users create competition directories for a C
 5. **Provide examples and templates they can use**
 
 Always verify that:
-- Folder names follow strict naming patterns
+- Competition folders can have any name (no strict pattern required)
+- Each competition has a UUID in config.json (will be auto-generated if missing)
 - JSON files are valid and complete
 - Required fields are present
 - Optional files are properly referenced
@@ -31,8 +27,8 @@ Always verify that:
 ### Required Structure
 ```
 competitions/
-└── competition{N}/              # N = unique number (1, 2, 3, ...)
-    ├── config.json              # REQUIRED: Competition metadata
+└── {any-folder-name}/            # Any folder name allowed (e.g., competition1, my-comp, external-2024)
+    ├── config.json              # REQUIRED: Competition metadata with UUID id
     └── level{M}/                # REQUIRED: At least one level (M starts at 1)
         ├── config.json          # REQUIRED: Level configuration
         ├── solution.py          # OPTIONAL: Reference solution
@@ -44,9 +40,10 @@ competitions/
 ## Naming Rules
 
 ### Competition Folders
-- **Pattern**: `competition{N}` where N is a positive integer
-- **Valid**: `competition1`, `competition2`, `competition10`
-- **Invalid**: `competition-1`, `comp1`, `Competition1`
+- **Pattern**: Any folder name is allowed
+- **Valid**: `competition1`, `competition2`, `my-competition`, `external-2024`, `fibonacci-challenge`
+- **Note**: Folder names are flexible - use descriptive names that make sense for your competitions
+- **Important**: The competition ID is stored in `config.json` as a UUID, not derived from folder name
 
 ### Level Folders
 - **Pattern**: `level{N}` where N starts at 1
@@ -65,13 +62,13 @@ competitions/
 
 ### Competition config.json
 
-**Location**: `competitions/competition{N}/config.json`
+**Location**: `competitions/{folder-name}/config.json`
 
 **Required Fields**:
 ```json
 {
-  "id": <integer>,           // Usually matches folder number
-  "name": "<string>",        // Display name
+  "id": "<uuid>",          // UUID (auto-generated if missing, e.g., "aa182b36-0e7d-434b-b320-ae3570126ccc")
+  "name": "<string>",      // Display name
   "description": "<string>"  // Brief description
 }
 ```
@@ -79,15 +76,17 @@ competitions/
 **Example**:
 ```json
 {
-  "id": 4,
-  "name": "My Custom Competition",
-  "description": "A 3-level coding challenge"
+  "id": "1029bb53-31e5-4e35-8d13-b0da3e20091b",
+  "name": "Fibonacci Challenge",
+  "description": "Master the famous Fibonacci sequence through progressively challenging problems"
 }
 ```
 
+**Note**: If `id` is missing, a UUID will be auto-generated when the competition is loaded. However, it's recommended to include it explicitly for consistency.
+
 ### Level config.json
 
-**Location**: `competitions/competition{N}/level{M}/config.json`
+**Location**: `competitions/{folder-name}/level{M}/config.json`
 
 **Required Fields**:
 ```json
@@ -171,9 +170,9 @@ competitions/
 
 ## Step-by-Step Creation Process
 
-1. **Choose Competition Number**: Check existing competitions, use next available number
-2. **Create Folder**: `competitions/competition{N}/`
-3. **Create Competition config.json** with id, name, description
+1. **Choose Competition Folder Name**: Use any descriptive name (e.g., `competition1`, `my-comp`, `external-2024`)
+2. **Create Folder**: `competitions/{your-folder-name}/`
+3. **Create Competition config.json** with UUID id (or leave empty for auto-generation), name, description
 4. **Create Level Folder**: `level1/` inside competition folder
 5. **Create Level config.json** with all required fields
 6. **Add Input File** (if needed): Place in level folder, reference in config
@@ -187,9 +186,9 @@ competitions/
 ## Validation Rules
 
 ### Competition Validation
-- ✅ Folder name: `competition{N}` format
+- ✅ Folder name: Any valid folder name (no strict pattern required)
 - ✅ `config.json` exists and is valid JSON
-- ✅ Has `id`, `name`, `description` fields
+- ✅ Has `id` (UUID string, auto-generated if missing), `name`, `description` fields
 - ✅ At least one level folder exists
 
 ### Level Validation
@@ -304,9 +303,10 @@ Check and report:
 
 | Element | Format | Example |
 |---------|--------|---------|
-| Competition folder | `competition{N}` | `competition4` |
+| Competition folder | Any folder name | `competition4`, `my-comp`, `external-2024` |
+| Competition ID | UUID string | `"1029bb53-31e5-4e35-8d13-b0da3e20091b"` |
 | Level folder | `level{N}` | `level1` |
-| Competition config | `config.json` | `{id, name, description}` |
+| Competition config | `config.json` | `{id (UUID), name, description}` |
 | Level config | `config.json` | `{title, description, input_type, placeholder, expected_answer}` |
 | Input type | `"text"` or `"number"` | `"number"` |
 | Expected answer | Always string | `"42"` |
@@ -317,7 +317,9 @@ Check and report:
 ## Special Instructions
 
 - **Always validate JSON** before showing it to users
-- **Use exact naming patterns** - no variations
+- **Use descriptive folder names** - any valid folder name is allowed
+- **Include UUID in config.json** - recommended for consistency, but will be auto-generated if missing
+- **Competition IDs are UUIDs** - not integers, stored as strings in config.json
 - **Double-check string quotes** - must be double quotes `"`
 - **Verify expected_answer format** - must be string representation
 - **Provide complete examples** - show full file structures
