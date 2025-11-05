@@ -276,3 +276,48 @@ Raderar alla resultat. Kräver `X-API-Key` header.
 - **Kan inte skicka resultat**: Kontrollera att servern körs och att `UPDATE_URL` är korrekt
 - **Importfel**: Se till att du kör `verify.py` från rätt directory eller att `common.py` finns i root
 
+## 🔄 GitHub Repository
+
+Denna kodbas är synkroniserad med GitHub:
+- **Repository URL**: https://github.com/nlindmark/code_with_AI.git
+- **Remote name**: `origin`
+
+### Synka ändringar till GitHub
+
+Standard workflow för att synka lokala ändringar till GitHub:
+
+```bash
+# 1. Lägg till ändringar
+git add <filer>              # Lägg till specifika filer
+# eller
+git add -A                   # Lägg till alla ändringar
+
+# 2. Committa ändringar
+git commit -m "Beskrivning av ändringarna"
+
+# 3. Pusha till GitHub
+git push origin master       # Om du är på master branch
+# eller
+git push origin main         # Om GitHub använder main branch
+```
+
+### Hämta ändringar från GitHub
+
+Om du arbetar från flera maskiner eller med andra utvecklare:
+
+```bash
+# Hämta och mergea ändringar från GitHub
+git pull origin master
+
+# Eller för att se ändringar först utan att mergea
+git fetch origin
+git log HEAD..origin/master  # Se vad som är nytt
+git merge origin/master      # Mergea ändringarna
+```
+
+### Felsökning av GitHub-synk
+
+- **"Repository not found"**: Kontrollera att GitHub-repositoryt finns och att du har rätt behörigheter
+- **"Authentication failed"**: Du behöver autentisera med GitHub (använd personal access token eller SSH-nyckel)
+- **"Branch name mismatch"**: Om GitHub använder `main` men lokalt är `master`, använd: `git push -u origin master:main`
+
