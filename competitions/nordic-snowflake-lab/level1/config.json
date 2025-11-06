@@ -1,0 +1,9 @@
+{
+  "title": "Level 1: Symmetry Detection",
+  "description": "Welcome to the Nordic Snowflake Research Lab in Kiruna, Sweden! You're analyzing your first snowflake sample.\n\nSnowflakes have 6-fold rotational symmetry. A simple way to represent a snowflake is as a string where each character represents one of the 6 arms.\n\nThis snowflake pattern: {{input}}\n\nIs this snowflake symmetric? (All arms identical)\nAnswer 'yes' or 'no'.",
+  "input_type": "text",
+  "placeholder": "yes or no",
+  "expected_answer": "yes",
+  "input_file": "snowflake.txt",
+  "hint": "Check if all 6 characters in the string are the same. A perfectly symmetric snowflake has identical arms."
+}

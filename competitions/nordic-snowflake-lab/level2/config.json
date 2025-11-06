@@ -1,0 +1,9 @@
+{
+  "title": "Level 2: Storm Analysis",
+  "description": "A winter storm has passed through Kiruna! Your sensors captured multiple snowflakes.\n\nEach line represents one snowflake's 6-arm pattern:\n\n{{input}}\n\nHow many of these snowflakes are perfectly symmetric?\n\n(Remember: symmetric means all 6 arms are identical)",
+  "input_type": "number",
+  "placeholder": "Enter the count",
+  "expected_answer": "4",
+  "input_file": "storm_data.txt",
+  "hint": "Apply your symmetry check from Level 1 to each line. Count how many snowflakes have all identical arms."
+}

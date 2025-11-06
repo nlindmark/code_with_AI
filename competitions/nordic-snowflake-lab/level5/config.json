@@ -1,0 +1,9 @@
+{
+  "title": "Level 5: Pattern Prediction",
+  "description": "The lab's IoT sensors have been monitoring atmospheric conditions to predict snowflake formation patterns!\n\nYour task: Analyze the sensor data and predict the most likely snowflake arm pattern.\n\n{{input}}\n\nRules for prediction:\n1. If humidity > 85% AND temperature < -18°C → High complexity → pattern: '*+#'\n2. If humidity > 75% AND temperature < -12°C → Medium complexity → pattern: '*+*'\n3. If wind_speed < 5 m/s AND humidity > 80% → Symmetric → pattern: '***'\n4. Otherwise → Low complexity → pattern: '*-*'\n\nApply rules in order (first match wins). What pattern will form?",
+  "input_type": "text",
+  "placeholder": "Enter pattern",
+  "expected_answer": "*+#",
+  "input_file": "sensors.json",
+  "hint": "Parse the JSON to extract humidity, temperature, and wind_speed. Check each rule in order from 1 to 4. Return the pattern from the first matching rule."
+}

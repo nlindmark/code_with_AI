@@ -1,0 +1,20 @@
+{
+  "station_id": "KIRUNA-01",
+  "timestamp": "2024-01-20T14:30:00Z",
+  "location": {
+    "latitude": 67.8558,
+    "longitude": 20.2253,
+    "altitude": 530
+  },
+  "conditions": {
+    "temperature": -19.8,
+    "humidity": 87.5,
+    "wind_speed": 6.2,
+    "pressure": 1013.2,
+    "visibility": 8500
+  },
+  "forecast": {
+    "snow_probability": 95,
+    "expected_accumulation": 12
+  }
+}

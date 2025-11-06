@@ -1,0 +1,8 @@
+{
+  "title": "Level 4: ADAS Collision Risk Calculator",
+  "description": "You're building an Advanced Driver Assistance System. Calculate the time-to-collision (TTC) given:\n\nYour vehicle speed: 25 m/s\nObstacle distance: 75 meters\nObstacle speed: 10 m/s (same direction)\n\nFormula: TTC = distance / (your_speed - obstacle_speed)\n\nWhat is the TTC in seconds? (Round to 1 decimal place)",
+  "input_type": "number",
+  "placeholder": "Enter TTC in seconds",
+  "expected_answer": "5.0",
+  "hint": "Calculate the relative speed (your speed minus obstacle speed), then divide distance by relative speed. Don't forget to round."
+}

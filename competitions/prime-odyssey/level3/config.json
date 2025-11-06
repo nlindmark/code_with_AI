@@ -1,0 +1,9 @@
+{
+  "title": "Level 3: The Nth Prime",
+  "description": "You can now detect primes. Let's learn to generate them!\n\nThe prime sequence starts: 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37...\n\nWhat is the {{input}}th prime number?\n\nNote: The 1st prime is 2, the 2nd prime is 3, and so on.",
+  "input_type": "number",
+  "placeholder": "Enter the prime number",
+  "expected_answer": "541",
+  "input_file": "position.txt",
+  "hint": "Build your prime sequence one at a time. Start checking from 2, and for each number, test if it's prime using your primality test. Keep a count until you reach the nth prime."
+}

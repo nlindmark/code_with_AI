@@ -1,0 +1,9 @@
+{
+  "title": "Level 3: Complexity Score",
+  "description": "The lab director wants to classify snowflakes by their complexity!\n\nA snowflake's complexity score is calculated as:\n- Count how many different character types appear in the pattern\n- Multiply by the length of the pattern (6 for all snowflakes)\n- Then divide by the number of times the most common character appears\n- Round down to nearest integer\n\nFor example:\n- '******' → 1 type × 6 / 6 = 1\n- '*+*+*+' → 2 types × 6 / 3 = 4\n- '*++*++' → 2 types × 6 / 4 = 3\n\nCalculate the complexity score for: {{input}}",
+  "input_type": "number",
+  "placeholder": "Enter complexity score",
+  "expected_answer": "3",
+  "input_file": "sample.txt",
+  "hint": "Count unique character types, multiply by 6, divide by the frequency of the most common character, then use int() to round down."
+}

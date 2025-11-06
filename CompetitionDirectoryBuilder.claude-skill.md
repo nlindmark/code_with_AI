@@ -1,6 +1,6 @@
 ---
 name: ai-competition-directory-builder
-description: Create and validate competition directory structures for Code with AI system, including config.json files with UUID-based competition IDs
+description: "Create and validate competition directory structures for Code with AI system, including config.json files with UUID-based competition IDs. Each competition should have a UUID in config.json. Competitions should be saved as downloadable zip files ready for deployment."
 ---
 
 ## Core Instructions for Claude
@@ -15,10 +15,11 @@ You are an expert assistant helping users create competition directories for a C
 
 Always verify that:
 - Competition folders can have any name (no strict pattern required)
-- Each competition has a UUID in config.json (will be auto-generated if missing)
+- Each competition should have a UUID in config.json (will be auto-generated if missing)
 - JSON files are valid and complete
 - Required fields are present
 - Optional files are properly referenced
+- Competitions should be created as zip files for easy download and deployment
 
 ---
 
@@ -67,7 +68,7 @@ competitions/
 **Required Fields**:
 ```json
 {
-  "id": "<uuid>",          // UUID (auto-generated if missing, e.g., "aa182b36-0e7d-434b-b320-ae3570126ccc")
+  "id": "<uuid>",          // UUID string (auto-generated if missing, e.g., "aa182b36-0e7d-434b-b320-ae3570126ccc")
   "name": "<string>",      // Display name
   "description": "<string>"  // Brief description
 }
@@ -82,7 +83,7 @@ competitions/
 }
 ```
 
-**Note**: If `id` is missing, a UUID will be auto-generated when the competition is loaded. However, it's recommended to include it explicitly for consistency.
+**Note**: The `id` field should be a UUID string. If `id` is missing, a UUID will be auto-generated when the competition is loaded, but it's recommended to include it explicitly in the config.json for consistency and proper tracking.
 
 ### Level config.json
 
@@ -102,7 +103,8 @@ competitions/
 **Optional Fields**:
 ```json
 {
-  "input_file": "<string>"  // Filename of input file in same level folder
+  "input_file": "<string>",  // Filename of input file in same level folder
+  "hint": "<string>"         // Optional hint to help solve the exercise
 }
 ```
 
@@ -166,20 +168,36 @@ competitions/
 }
 ```
 
+### Example 4: Level with Hint
+
+**config.json**:
+```json
+{
+  "title": "Level 1: Count Vowels",
+  "description": "Count the number of vowels (a, e, i, o, u) in: 'Programming is fun!'",
+  "input_type": "number",
+  "placeholder": "Enter the number of vowels",
+  "expected_answer": "5",
+  "hint": "Räkna noggrant alla vokaler, både stora och små bokstäver."
+}
+```
+
 ---
 
 ## Step-by-Step Creation Process
 
 1. **Choose Competition Folder Name**: Use any descriptive name (e.g., `competition1`, `my-comp`, `external-2024`)
 2. **Create Folder**: `competitions/{your-folder-name}/`
-3. **Create Competition config.json** with UUID id (or leave empty for auto-generation), name, description
+3. **Create Competition config.json** with UUID id, name, description
 4. **Create Level Folder**: `level1/` inside competition folder
-5. **Create Level config.json** with all required fields
-6. **Add Input File** (if needed): Place in level folder, reference in config
-7. **Add solution.py** (optional): Reference solution for testing
-8. **Repeat for Additional Levels**: level2/, level3/, etc.
-9. **Validate Structure**: Check all files exist, JSON is valid
-10. **Test**: Restart server, verify competition loads
+5. **Create Level config.json** with all required fields (title, description, input_type, placeholder, expected_answer)
+6. **Add Optional Hint** (if desired): Add `"hint"` field to level config.json with helpful guidance
+7. **Add Input File** (if needed): Place in level folder, reference in config
+8. **Add solution.py** (optional): Reference solution for testing
+9. **Repeat for Additional Levels**: level2/, level3/, etc.
+10. **Validate Structure**: Check all files exist, JSON is valid, UUID is present
+11. **Create Zip File**: Package the entire competition folder as a zip file for download
+12. **Test**: Restart server, verify competition loads (or extract zip and test)
 
 ---
 
@@ -190,6 +208,7 @@ competitions/
 - ✅ `config.json` exists and is valid JSON
 - ✅ Has `id` (UUID string, auto-generated if missing), `name`, `description` fields
 - ✅ At least one level folder exists
+- ✅ Zip file created containing complete competition structure (competition folder, all levels, config files, input files, solution files)
 
 ### Level Validation
 - ✅ Folder name: `level{N}` format, starting at 1
@@ -198,6 +217,7 @@ competitions/
 - ✅ `input_type` is `"text"` or `"number"`
 - ✅ `expected_answer` is a string
 - ✅ If `input_file` specified, file exists in level folder
+- ✅ If `hint` specified, it's a string providing helpful guidance
 
 ### JSON Validation
 - ✅ Valid JSON syntax (no trailing commas, proper quotes)
@@ -240,10 +260,11 @@ competitions/
    - Suggest next available number
 
 3. **Generate Files**:
-   - Create competition `config.json`
-   - Create level folders and `config.json` for each
+   - Create competition `config.json` with UUID
+   - Create level folders and `config.json` for each (include optional `hint` field if desired)
    - If input files needed, provide example structure
    - Optionally generate `solution.py` templates
+   - Create zip file containing the entire competition structure
 
 4. **Provide Validation**:
    - Check all naming conventions
@@ -267,7 +288,7 @@ Start with: "I'll help you create a competition directory. First, I need:
 3. Brief description of each level's problem
 4. Any input files needed?
 
-Once I have this, I'll generate all the config.json files and folder structure for you."
+Once I have this, I'll generate all the config.json files and folder structure for you, and create a zip file ready for download."
 
 ### When Generating config.json
 
@@ -289,13 +310,16 @@ Check and report:
 
 ## Best Practices to Recommend
 
-1. **Use sequential level numbers** (level1, level2, level3)
-2. **Always create solution.py** for testing
-3. **Test expected_answer** matches solution output exactly
-4. **Use descriptive filenames** for input files
-5. **Validate JSON** before deploying
-6. **Start simple** - verify first level works before adding more
-7. **Progressive difficulty** - easier problems in earlier levels
+1. **Include UUID** in competition config.json for proper tracking
+2. **Use sequential level numbers** (level1, level2, level3)
+3. **Always create solution.py** for testing
+4. **Test expected_answer** matches solution output exactly
+5. **Use descriptive filenames** for input files
+6. **Add helpful hints** to level configs when appropriate
+7. **Validate JSON** before deploying
+8. **Create zip file** containing complete competition structure for easy distribution
+9. **Start simple** - verify first level works before adding more
+10. **Progressive difficulty** - easier problems in earlier levels
 
 ---
 
@@ -307,7 +331,7 @@ Check and report:
 | Competition ID | UUID string | `"1029bb53-31e5-4e35-8d13-b0da3e20091b"` |
 | Level folder | `level{N}` | `level1` |
 | Competition config | `config.json` | `{id (UUID), name, description}` |
-| Level config | `config.json` | `{title, description, input_type, placeholder, expected_answer}` |
+| Level config | `config.json` | `{title, description, input_type, placeholder, expected_answer, hint (optional)}` |
 | Input type | `"text"` or `"number"` | `"number"` |
 | Expected answer | Always string | `"42"` |
 | Input file | Any filename | `input.txt` |
@@ -318,14 +342,47 @@ Check and report:
 
 - **Always validate JSON** before showing it to users
 - **Use descriptive folder names** - any valid folder name is allowed
-- **Include UUID in config.json** - recommended for consistency, but will be auto-generated if missing
+- **Include UUID in config.json** - recommended for consistency (will be auto-generated if missing)
 - **Competition IDs are UUIDs** - not integers, stored as strings in config.json
 - **Double-check string quotes** - must be double quotes `"`
 - **Verify expected_answer format** - must be string representation
+- **Include hints when helpful** - optional `hint` field can provide guidance to users
+- **Create zip files** - competitions should be packaged as zip files for easy download and deployment
 - **Provide complete examples** - show full file structures
 - **Guide step-by-step** - don't overwhelm with all info at once
 
 ---
+
+## Zip File Creation
+
+When creating a competition, you should provide the complete competition structure as a **zip file** that users can download and deploy. The zip file should contain:
+
+- The competition folder (e.g., `competition1/`, `my-comp/`, etc.)
+- Competition `config.json` with UUID
+- All level folders (`level1/`, `level2/`, etc.)
+- Each level's `config.json` file
+- All input files referenced in level configs
+- All `solution.py` files (if present)
+
+**Zip File Structure Example**:
+```
+competition1.zip
+└── competition1/
+    ├── config.json
+    ├── level1/
+    │   ├── config.json
+    │   ├── solution.py (optional)
+    │   └── input.txt (optional)
+    └── level2/
+        ├── config.json
+        └── solution.py (optional)
+```
+
+**Instructions for Users**:
+1. Download the zip file
+2. Extract it to the `competitions/` directory
+3. Restart the server to load the competition
+4. The competition will be automatically discovered and registered
 
 ## Remember
 
@@ -334,6 +391,8 @@ Check and report:
 - Database registration happens automatically
 - Validation is strict (exact string matching for answers)
 - JSON syntax must be perfect (trailing commas will break it)
+- Include UUID in competition config.json - each competition should have a UUID
+- Create zip files - competitions should be packaged as downloadable zip files
 
 Use this skill to help users create competition directories with confidence and accuracy.
 

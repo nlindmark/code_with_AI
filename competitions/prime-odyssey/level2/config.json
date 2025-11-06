@@ -1,0 +1,9 @@
+{
+  "title": "Level 2: Count the Primes",
+  "description": "Now that you can identify a single prime, let's work with ranges.\n\nGiven this list of numbers:\n\n{{input}}\n\nHow many prime numbers are in this list?",
+  "input_type": "number",
+  "placeholder": "Enter the count",
+  "expected_answer": "11",
+  "input_file": "numbers.txt",
+  "hint": "Use your primality test from Level 1 on each number. Remember that 1 is not prime, and 2 is the only even prime."
+}

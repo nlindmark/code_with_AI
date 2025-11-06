@@ -1,0 +1,9 @@
+{
+  "title": "Level 3: EV Charging Load Balancing",
+  "description": "You're optimizing an electric vehicle charging station. Given the charging schedule below, what is the peak power demand (kW) at any single time slot?\n\nCharging Schedule:\n{{input}}\n\nFormat: VehicleID, StartTime(hour), EndTime(hour), ChargingRate(kW)\nFind the maximum simultaneous power demand.",
+  "input_type": "number",
+  "placeholder": "Enter peak power in kW",
+  "expected_answer": "135",
+  "input_file": "charging_schedule.txt",
+  "hint": "For each hour, calculate the total power from all vehicles charging during that hour. The answer is the maximum total across all hours."
+}

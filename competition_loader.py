@@ -119,6 +119,11 @@ def load_competitions(competitions_dir: str = "competitions") -> Dict[str, Dict[
                 "expected_answer": level_config.get("expected_answer", "")
             }
             
+            # Handle optional hint field
+            hint = level_config.get("hint")
+            if hint:
+                level["hint"] = hint
+            
             # Handle input file if specified - store filename for download, don't embed content
             input_file = level_config.get("input_file")
             if input_file:

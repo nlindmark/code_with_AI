@@ -125,7 +125,7 @@
         <h3 style="margin-bottom: 15px; color: #333; text-align: center;">Välj Aktiv Tävling</h3>
         <div style="display: flex; flex-direction: column; gap: 10px;">
             {% for comp in competitions %}
-            <button onclick="setActiveCompetition({{ comp.id }})" 
+            <button onclick="setActiveCompetition('{{ comp.id }}')" 
                     class="btn {% if comp.is_active %}btn-primary{% else %}btn-secondary{% endif %}"
                     style="width: 100%; text-align: left; justify-content: space-between; display: flex;">
                 <span>

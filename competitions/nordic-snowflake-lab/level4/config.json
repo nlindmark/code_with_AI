@@ -1,0 +1,9 @@
+{
+  "title": "Level 4: Temperature Correlation",
+  "description": "Your research team collected snowflake data at different temperatures throughout the winter.\n\nThe data shows: timestamp, temperature (°C), and complexity score.\n\n{{input}}\n\nWhat is the average complexity score for snowflakes formed at temperatures BELOW -15°C?\n\nRound your answer to 1 decimal place.",
+  "input_type": "text",
+  "placeholder": "e.g., 12.5",
+  "expected_answer": "9.2",
+  "input_file": "weather_log.csv",
+  "hint": "Filter rows where temperature < -15, then calculate the average of their complexity scores. Use Python's round() function with 1 decimal place."
+}
