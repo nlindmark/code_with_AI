@@ -178,6 +178,9 @@
         <div class="container">
             <ul>
                 <li><a href="{{ url_for('leaderboard') }}">Leaderboard</a></li>
+                {% if competition_id %}
+                <li><a href="{{ url_for('competition_intro') }}">Tävlingsinfo</a></li>
+                {% endif %}
                 {% if max_level > 0 %}
                     {% for level_num in range(1, max_level + 1) %}
                         <li><a href="{{ url_for('level', level_id=level_num) }}">Nivå {{ level_num }}</a></li>

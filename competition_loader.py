@@ -7,8 +7,9 @@ Supports UUID-based competition IDs and any folder name.
 import os
 import json
 import uuid
+import re
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 def load_competitions(competitions_dir: str = "competitions") -> Dict[str, Dict[str, Any]]:
@@ -70,11 +71,15 @@ def load_competitions(competitions_dir: str = "competitions") -> Dict[str, Dict[
             print(f"⚠️  Warning: Invalid UUID format '{comp_id}' in '{comp_config_path}', skipping")
             continue
         
+        # Load Summary.md if it exists
+        summary_data = _load_summary_md(item)
+        
         # Build competition structure
         competition = {
             "name": comp_config.get("name", f"Competition {comp_id[:8]}"),
             "description": comp_config.get("description", ""),
             "folder_name": item.name,  # Store folder name for file path construction
+            "summary": summary_data,  # Store parsed Summary.md content
             "levels": {}
         }
         
@@ -155,4 +160,62 @@ def load_competitions(competitions_dir: str = "competitions") -> Dict[str, Dict[
     
     print(f"📊 Loaded {len(competitions)} competition(s)")
     return competitions
+
+
+def _load_summary_md(competition_folder: Path) -> Optional[Dict[str, Any]]:
+    """
+    Loads and parses Summary.md from a competition folder.
+    
+    Args:
+        competition_folder: Path to competition folder
+        
+    Returns:
+        Dictionary with parsed sections, or None if file doesn't exist
+    """
+    summary_path = competition_folder / "Summary.md"
+    
+    if not summary_path.exists():
+        print(f"⚠️  Warning: No Summary.md found in '{competition_folder.name}'")
+        return None
+    
+    try:
+        with open(summary_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Parse markdown sections
+        summary = {}
+        
+        # Extract sections using regex to find markdown headers (## and ###)
+        # Sections we're looking for:
+        sections = {
+            "overview": r"##\s+Overview\s*\n(.*?)(?=\n##|\Z)",
+            "story": r"##\s+Story\s*\n(.*?)(?=\n##|\Z)",
+            "level_progression": r"##\s+Level Progression\s*\n(.*?)(?=\n##|\Z)",
+            "learning_objectives": r"##\s+Learning Objectives\s*\n(.*?)(?=\n##|\Z)",
+            "difficulty_curve": r"##\s+Difficulty Curve\s*\n(.*?)(?=\n##|\Z)",
+            "context": r"##\s+Context\s*\n(.*?)(?=\n##|\Z)",
+            "estimated_time": r"##\s+Estimated Time\s*\n(.*?)(?=\n##|\Z)",
+        }
+        
+        for section_key, pattern in sections.items():
+            match = re.search(pattern, content, re.DOTALL | re.IGNORECASE)
+            if match:
+                section_content = match.group(1).strip()
+                # Clean up extra whitespace
+                section_content = re.sub(r'\n{3,}', '\n\n', section_content)
+                summary[section_key] = section_content
+            else:
+                # Optional sections can be None
+                if section_key in ["difficulty_curve", "context", "estimated_time"]:
+                    summary[section_key] = None
+                else:
+                    # Required sections should warn if missing
+                    print(f"⚠️  Warning: Missing required section '{section_key}' in Summary.md for '{competition_folder.name}'")
+                    summary[section_key] = None
+        
+        return summary
+        
+    except Exception as e:
+        print(f"⚠️  Warning: Error reading Summary.md in '{competition_folder.name}': {e}")
+        return None
 

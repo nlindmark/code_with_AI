@@ -10,6 +10,7 @@ load_dotenv()  # Load environment variables from .env file
 from flask import Flask, jsonify, request, send_from_directory, session, redirect, url_for, render_template
 import db
 import competition_loader
+import re
 
 app = Flask(__name__)
 
@@ -21,6 +22,93 @@ app.secret_key = os.getenv("SECRET_KEY", "change_this_secret_key_in_production")
 
 # Load competitions dynamically from folder structure
 COMPETITIONS = competition_loader.load_competitions()
+
+
+def markdown_to_html(text):
+    """Simple markdown to HTML converter for Summary.md content."""
+    if not text:
+        return ""
+    
+    lines = text.split('\n')
+    result_lines = []
+    in_list = False
+    in_paragraph = False
+    current_paragraph = []
+    
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+        
+        # Handle headers (### Level X: Title)
+        if stripped.startswith('### '):
+            # Close any open paragraph or list
+            if in_paragraph:
+                result_lines.append('<p>' + ' '.join(current_paragraph) + '</p>')
+                current_paragraph = []
+                in_paragraph = False
+            if in_list:
+                result_lines.append('</ul>')
+                in_list = False
+            
+            header_text = stripped[4:].strip()
+            # Convert bold in headers
+            header_text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', header_text)
+            result_lines.append(f'<h3>{header_text}</h3>')
+        
+        # Handle bullet lists
+        elif stripped.startswith('- '):
+            # Close any open paragraph
+            if in_paragraph:
+                result_lines.append('<p>' + ' '.join(current_paragraph) + '</p>')
+                current_paragraph = []
+                in_paragraph = False
+            
+            if not in_list:
+                result_lines.append('<ul>')
+                in_list = True
+            
+            list_item = stripped[2:].strip()
+            # Convert bold in list items
+            list_item = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', list_item)
+            result_lines.append(f'<li>{list_item}</li>')
+        
+        # Handle regular paragraphs
+        elif stripped:
+            if in_list:
+                result_lines.append('</ul>')
+                in_list = False
+            
+            # Convert bold in paragraphs
+            processed_line = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', line)
+            current_paragraph.append(processed_line)
+            in_paragraph = True
+        
+        # Handle empty lines (end paragraph)
+        else:
+            if in_paragraph:
+                result_lines.append('<p>' + ' '.join(current_paragraph) + '</p>')
+                current_paragraph = []
+                in_paragraph = False
+            if in_list:
+                result_lines.append('</ul>')
+                in_list = False
+        
+        i += 1
+    
+    # Close any remaining open structures
+    if in_paragraph:
+        result_lines.append('<p>' + ' '.join(current_paragraph) + '</p>')
+    if in_list:
+        result_lines.append('</ul>')
+    
+    return '\n'.join(result_lines)
+
+
+@app.template_filter('markdown')
+def markdown_filter(text):
+    """Jinja2 filter for markdown conversion."""
+    return markdown_to_html(text)
 
 
 @app.context_processor
@@ -62,7 +150,12 @@ def login():
         username = request.form.get('username', '').strip()
         if username and username.isalnum():
             session['username'] = username
-            return redirect(url_for('level', level_id=1))
+            # Redirect to competition intro instead of directly to level 1
+            competition_id = db.get_active_competition_id()
+            if competition_id and competition_id in COMPETITIONS:
+                return redirect(url_for('competition_intro'))
+            else:
+                return redirect(url_for('leaderboard'))
         else:
             return render_template('login.html', error="Användarnamn måste vara alfanumeriskt och inte tomt")
     
@@ -186,6 +279,27 @@ def submit(level_id):
                              username=username,
                              competition_id=competition_id,
                              error="Felaktigt svar! Försök igen.")
+
+
+@app.route("/competition/intro")
+def competition_intro():
+    """Visar tävlingsintroduktion med Summary.md innehåll."""
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    
+    competition_id = db.get_active_competition_id()
+    
+    # Kontrollera att tävlingen finns
+    if not competition_id or competition_id not in COMPETITIONS:
+        return redirect(url_for('leaderboard'))
+    
+    competition = COMPETITIONS[competition_id]
+    summary = competition.get("summary")
+    
+    return render_template('competition_intro.html', 
+                         competition=competition,
+                         summary=summary,
+                         competition_id=competition_id)
 
 
 @app.route("/leaderboard")

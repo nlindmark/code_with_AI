@@ -84,8 +84,18 @@
     
     {% if problem.hint %}
     <div style="margin-top: 30px; padding: 15px; background-color: #e3f2fd; border-radius: 5px; border-left: 4px solid #2196f3;">
-        <strong>💡 Tips:</strong> 
-        <p style="margin-top: 10px; margin-bottom: 0;">{{ problem.hint }}</p>
+        <button id="show-hint-btn" 
+                onclick="toggleHint()" 
+                class="btn" 
+                style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); margin-bottom: 15px;">
+            💡 Visa tips
+        </button>
+        <div id="hint-container" style="display: none;">
+            <h4 style="margin-bottom: 10px; color: #333;">Tips:</h4>
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
+                <p style="margin: 0; color: #333;">{{ problem.hint }}</p>
+            </div>
+        </div>
     </div>
     {% endif %}
     {% endif %}
@@ -149,6 +159,35 @@
         document.getElementById('solution-container').style.display = 'none';
         document.getElementById('show-solution-btn').textContent = '💡 Visa lösningsprogram';
         solutionVisible = false;
+    }
+</script>
+{% endif %}
+
+{% if problem.hint %}
+<script>
+    let hintVisible = false;
+    
+    function toggleHint() {
+        const container = document.getElementById('hint-container');
+        const btn = document.getElementById('show-hint-btn');
+        
+        if (hintVisible) {
+            hideHint();
+        } else {
+            showHint();
+        }
+    }
+    
+    function showHint() {
+        document.getElementById('hint-container').style.display = 'block';
+        document.getElementById('show-hint-btn').textContent = '🙈 Dölj tips';
+        hintVisible = true;
+    }
+    
+    function hideHint() {
+        document.getElementById('hint-container').style.display = 'none';
+        document.getElementById('show-hint-btn').textContent = '💡 Visa tips';
+        hintVisible = false;
     }
 </script>
 {% endif %}
