@@ -10,6 +10,7 @@ load_dotenv()  # Load environment variables from .env file
 from flask import Flask, jsonify, request, send_from_directory, session, redirect, url_for, render_template
 import db
 import competition_loader
+import translations
 import re
 
 app = Flask(__name__)
@@ -22,6 +23,17 @@ app.secret_key = os.getenv("SECRET_KEY", "change_this_secret_key_in_production")
 
 # Load competitions dynamically from folder structure
 COMPETITIONS = competition_loader.load_competitions()
+
+
+def get_current_language():
+    """Get current language from session, default to Swedish."""
+    return session.get('language', 'sv')
+
+
+def t(category, key, *args):
+    """Helper function to get translated string for current language."""
+    lang = get_current_language()
+    return translations.t(lang, category, key, *args)
 
 
 def markdown_to_html(text):
@@ -113,7 +125,10 @@ def markdown_filter(text):
 
 @app.context_processor
 def inject_competition_data():
-    """Makes competition data and max_level available to all templates."""
+    """Makes competition data, max_level, and translations available to all templates."""
+    lang = get_current_language()
+    translations_dict = translations.get_translations(lang)
+    
     try:
         competition_id = db.get_active_competition_id()
         if competition_id and competition_id in COMPETITIONS:
@@ -122,7 +137,10 @@ def inject_competition_data():
             return {
                 "competition": competition,
                 "max_level": max_level,
-                "competition_id": competition_id
+                "competition_id": competition_id,
+                "t": lambda category, key, *args: translations.t(lang, category, key, *args),
+                "translations": translations_dict,
+                "current_lang": lang
             }
     except Exception:
         pass
@@ -131,8 +149,20 @@ def inject_competition_data():
     return {
         "competition": None,
         "max_level": 0,
-        "competition_id": None
+        "competition_id": None,
+        "t": lambda category, key, *args: translations.t(lang, category, key, *args),
+        "translations": translations_dict,
+        "current_lang": lang
     }
+
+
+@app.route("/set_language/<lang>")
+def set_language(lang):
+    """Set language preference in session."""
+    if lang in ['en', 'sv']:
+        session['language'] = lang
+    # Redirect back to the page that called this, or to index
+    return redirect(request.referrer or url_for('index'))
 
 
 @app.route("/")
@@ -157,7 +187,7 @@ def login():
             else:
                 return redirect(url_for('leaderboard'))
         else:
-            return render_template('login.html', error="Användarnamn måste vara alfanumeriskt och inte tomt")
+            return render_template('login.html', error=t('login', 'error_invalid_username'))
     
     return render_template('login.html')
 
@@ -238,7 +268,7 @@ def submit(level_id):
                              level_id=level_id, 
                              username=username,
                              competition_id=competition_id,
-                             error="Tävlingen är inte aktiv. Vänta tills tävlingen startar.")
+                             error=t('errors', 'competition_not_active'))
     
     answer = request.form.get('answer', '').strip()
     if not answer:
@@ -247,7 +277,7 @@ def submit(level_id):
                                  level_id=level_id, 
                                  username=username,
                                  competition_id=competition_id,
-                                 error="Svar krävs")
+                                 error=t('errors', 'answer_required'))
     
     # Validera svar med expected_answer från competition config
     expected_answer = problem.get("expected_answer", "")
@@ -278,7 +308,7 @@ def submit(level_id):
                              level_id=level_id, 
                              username=username,
                              competition_id=competition_id,
-                             error="Felaktigt svar! Försök igen.")
+                             error=t('errors', 'wrong_answer'))
 
 
 @app.route("/competition/intro")
@@ -337,26 +367,26 @@ def download_input_file(competition_id, level_id, filename):
     """
     # Kontrollera att tävlingen finns
     if competition_id not in COMPETITIONS:
-        return "Tävling finns inte", 404
+        return t('errors', 'competition_not_found'), 404
     
     competition = COMPETITIONS[competition_id]
     
     # Kontrollera att nivån finns i tävlingen
     if level_id not in competition["levels"]:
-        return "Nivå finns inte", 404
+        return t('errors', 'level_not_found'), 404
     
     level = competition["levels"][level_id]
     
     # Kontrollera att nivån har en input_file och att filnamnet matchar
     if "input_file" not in level:
-        return "Ingen input-fil för denna nivå", 404
+        return t('errors', 'no_input_file'), 404
     
     if level["input_file"] != filename:
-        return "Ogiltigt filnamn", 403
+        return t('errors', 'invalid_filename'), 403
     
     # Säkerhetskontroll: Filnamnet ska inte innehålla path traversal
     if ".." in filename or "/" in filename or "\\" in filename:
-        return "Ogiltigt filnamn", 403
+        return t('errors', 'invalid_filename'), 403
     
     # Konstruera sökväg till filen (use folder_name from competition)
     from pathlib import Path
@@ -365,13 +395,13 @@ def download_input_file(competition_id, level_id, filename):
     
     # Ytterligare säkerhetskontroll: Verifiera att filen verkligen finns på rätt plats
     if not file_path.exists() or not file_path.is_file():
-        return "Fil hittades inte", 404
+        return t('errors', 'file_not_found'), 404
     
     # Verifiera att filen är inom competitions-katalogen (prevent path traversal)
     try:
         file_path.resolve().relative_to(Path("competitions").resolve())
     except ValueError:
-        return "Ogiltig fil-sökväg", 403
+        return t('errors', 'invalid_path'), 403
     
     # Servera filen
     directory = str(file_path.parent)
@@ -387,13 +417,13 @@ def get_solution(competition_id, level_id):
     """
     # Kontrollera att tävlingen finns
     if competition_id not in COMPETITIONS:
-        return "Tävling finns inte", 404
+        return t('errors', 'competition_not_found'), 404
     
     competition = COMPETITIONS[competition_id]
     
     # Kontrollera att nivån finns i tävlingen
     if level_id not in competition["levels"]:
-        return "Nivå finns inte", 404
+        return t('errors', 'level_not_found'), 404
     
     level = competition["levels"][level_id]
     
@@ -408,13 +438,13 @@ def get_solution(competition_id, level_id):
     
     # Säkerhetskontroll: Verifiera att filen verkligen finns på rätt plats
     if not solution_path.exists() or not solution_path.is_file():
-        return "Lösningsfil hittades inte", 404
+        return t('errors', 'file_not_found'), 404
     
     # Verifiera att filen är inom competitions-katalogen (prevent path traversal)
     try:
         solution_path.resolve().relative_to(Path("competitions").resolve())
     except ValueError:
-        return "Ogiltig fil-sökväg", 403
+        return t('errors', 'invalid_path'), 403
     
     # Läs och returnera filinnehållet
     try:
@@ -422,7 +452,7 @@ def get_solution(competition_id, level_id):
             solution_content = f.read()
         return solution_content, 200, {'Content-Type': 'text/plain; charset=utf-8'}
     except Exception as e:
-        return f"Fel vid läsning av lösningsfil: {e}", 500
+        return t('errors', 'error_reading_solution', str(e)), 500
 
 
 @app.route("/admin")
@@ -430,7 +460,7 @@ def admin():
     """Admin-kontrollpanel för tävlingsledare."""
     api_key_header = request.headers.get("X-API-Key")
     if api_key_header != API_KEY:
-        return "API-nyckel krävs", 403
+        return t('errors', 'invalid_api_key'), 403
     
     active_competition_id = db.get_active_competition_id()
     competition_state = db.get_competition_state(active_competition_id)
@@ -464,17 +494,17 @@ def admin_start():
     """Startar den aktiva tävlingen."""
     api_key_header = request.headers.get("X-API-Key")
     if api_key_header != API_KEY:
-        return jsonify({"error": "Ogiltig API-nyckel"}), 403
+        return jsonify({"error": t('errors', 'invalid_api_key_error')}), 403
     
     competition_id = db.get_active_competition_id()
     if not competition_id:
-        return jsonify({"error": "Ingen aktiv tävling"}), 400
+        return jsonify({"error": t('errors', 'no_active_competition')}), 400
     
     import time
     start_time = int(time.time())
     db.set_competition_state(competition_id, True, start_time)
     
-    return jsonify({"success": True, "message": "Tävling startad!"})
+    return jsonify({"success": True, "message": t('errors', 'competition_started')})
 
 
 @app.route("/admin/stop", methods=["POST"])
@@ -482,18 +512,18 @@ def admin_stop():
     """Stoppar den aktiva tävlingen."""
     api_key_header = request.headers.get("X-API-Key")
     if api_key_header != API_KEY:
-        return jsonify({"error": "Ogiltig API-nyckel"}), 403
+        return jsonify({"error": t('errors', 'invalid_api_key_error')}), 403
     
     competition_id = db.get_active_competition_id()
     if not competition_id:
-        return jsonify({"error": "Ingen aktiv tävling"}), 400
+        return jsonify({"error": t('errors', 'no_active_competition')}), 400
     
     # Behåll start_time när vi stoppar - sätt bara is_active till False
     current_state = db.get_competition_state(competition_id)
     existing_start_time = current_state.get("start_time", 0)
     db.set_competition_state(competition_id, False, existing_start_time)
     
-    return jsonify({"success": True, "message": "Tävling stoppad!"})
+    return jsonify({"success": True, "message": t('errors', 'competition_stopped')})
 
 
 @app.route("/admin/competitions", methods=["POST"])
@@ -501,22 +531,22 @@ def admin_set_active_competition():
     """Sätter aktiv tävling."""
     api_key_header = request.headers.get("X-API-Key")
     if api_key_header != API_KEY:
-        return jsonify({"error": "Ogiltig API-nyckel"}), 403
+        return jsonify({"error": t('errors', 'invalid_api_key_error')}), 403
     
     data = request.json
     if not data or "competition_id" not in data:
-        return jsonify({"error": "Saknar competition_id"}), 400
+        return jsonify({"error": t('errors', 'missing_competition_id')}), 400
     
     competition_id = data["competition_id"]
     
     # Kontrollera att tävlingen finns
     if competition_id not in COMPETITIONS:
-        return jsonify({"error": "Ogiltig tävling"}), 400
+        return jsonify({"error": t('errors', 'invalid_competition')}), 400
     
     # Sätt som aktiv
     db.set_active_competition(competition_id)
     
-    return jsonify({"success": True, "message": f"Tävling {competition_id} är nu aktiv"})
+    return jsonify({"success": True, "message": t('errors', 'competition_set', competition_id)})
 
 
 @app.route("/update", methods=["POST"])
@@ -528,7 +558,7 @@ def update():
     data = request.json
     
     if not data or "user" not in data or "level" not in data or "ms" not in data:
-        return jsonify({"error": "Saknar user, level eller ms"}), 400
+        return jsonify({"error": "Missing user, level or ms"}), 400
     
     user = data["user"]
     level = data["level"]
@@ -536,34 +566,34 @@ def update():
     
     # Validera att nivå och tid är positiva
     if not isinstance(level, int) or level < 1:
-        return jsonify({"error": "Ogiltig nivå"}), 400
+        return jsonify({"error": t('errors', 'invalid_level')}), 400
     
     if not isinstance(ms, int) or ms < 0:
-        return jsonify({"error": "Ogiltig tid"}), 400
+        return jsonify({"error": t('errors', 'invalid_time')}), 400
     
     competition_id = db.get_active_competition_id()
     
     # Kontrollera att tävlingen är aktiv
     if not competition_id:
-        return jsonify({"error": "Ingen aktiv tävling"}), 400
+        return jsonify({"error": t('errors', 'no_active_competition')}), 400
     
     competition_state = db.get_competition_state(competition_id)
     if not competition_state.get("is_active", False):
-        return jsonify({"error": "Tävlingen är inte aktiv"}), 403
+        return jsonify({"error": t('errors', 'competition_inactive')}), 403
     
     # Kontrollera att nivån finns i tävlingen
     if competition_id not in COMPETITIONS:
-        return jsonify({"error": "Tävlingen finns inte"}), 400
+        return jsonify({"error": t('errors', 'competition_not_found')}), 400
     
     if level not in COMPETITIONS[competition_id]["levels"]:
-        return jsonify({"error": "Nivån finns inte i tävlingen"}), 400
+        return jsonify({"error": t('errors', 'level_not_in_competition')}), 400
     
     improved = db.save_result(user, competition_id, level, ms)
     
     return jsonify({
         "success": True,
         "improved": improved,
-        "message": "Tid förbättrad!" if improved else "Ingen förbättring"
+        "message": t('messages', 'time_improved') if improved else t('messages', 'no_improvement')
     })
 
 
@@ -575,7 +605,7 @@ def reset():
     api_key_header = request.headers.get("X-API-Key")
     
     if api_key_header != API_KEY:
-        return jsonify({"error": "Ogiltig API-nyckel"}), 403
+        return jsonify({"error": t('errors', 'invalid_api_key_error')}), 403
     
     # Radera databasfilen och skapa ny tabell
     import sqlite3
@@ -587,7 +617,7 @@ def reset():
     db.init_db()
     db.init_competitions(COMPETITIONS)
     
-    return jsonify({"success": True, "message": "Alla resultat raderade"})
+    return jsonify({"success": True, "message": t('errors', 'all_data_deleted')})
 
 
 def get_network_ip():

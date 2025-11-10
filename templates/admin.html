@@ -91,26 +91,26 @@
 
 {% block content %}
 <div class="admin-panel">
-    <h2 style="text-align: center; margin-bottom: 30px; color: #333;">🎮 Tävlingskontroll</h2>
+    <h2 style="text-align: center; margin-bottom: 30px; color: #333;">🎮 {{ t('admin', 'title') }}</h2>
     
     <div class="status-card {% if state.is_active %}status-active{% else %}status-inactive{% endif %}">
         <div class="status-indicator">
             {% if state.is_active %}
-                ✅ Tävling aktiv
+                ✅ {{ t('admin', 'competition_active') }}
             {% else %}
-                ❌ Tävling inaktiv
+                ❌ {{ t('admin', 'competition_inactive') }}
             {% endif %}
         </div>
         <p>
             {% if state.is_active %}
-                Startad: {{ state.start_time_formatted }}
+                {{ t('admin', 'started_at', state.start_time_formatted) }}
             {% else %}
-                Tävlingen är inte startad
+                {{ t('admin', 'not_started') }}
             {% endif %}
         </p>
         {% if state.active_competition_id %}
         <p style="margin-top: 10px; color: #666; font-size: 0.9em;">
-            Aktiv tävling: <strong>
+            {{ t('admin', 'active_competition') }} <strong>
                 {% for comp in competitions %}
                     {% if comp.id == state.active_competition_id %}
                         {{ comp.name }}
@@ -122,7 +122,7 @@
     </div>
     
     <div style="background: white; border: 2px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
-        <h3 style="margin-bottom: 15px; color: #333; text-align: center;">Välj Aktiv Tävling</h3>
+        <h3 style="margin-bottom: 15px; color: #333; text-align: center;">{{ t('admin', 'select_active_competition') }}</h3>
         <div style="display: flex; flex-direction: column; gap: 10px;">
             {% for comp in competitions %}
             <button onclick="setActiveCompetition('{{ comp.id }}')" 
@@ -143,40 +143,40 @@
     <div class="control-buttons">
         {% if not state.is_active %}
         <button onclick="startCompetition()" class="btn">
-            🚀 Starta tävling
+            {{ t('admin', 'start_competition') }}
         </button>
         {% else %}
         <button onclick="stopCompetition()" class="btn btn-danger">
-            ⏹️ Stoppa tävling
+            {{ t('admin', 'stop_competition') }}
         </button>
         {% endif %}
         
         <button onclick="resetData()" class="btn btn-secondary">
-            🗑️ Rensa all data
+            {{ t('admin', 'clear_all_data') }}
         </button>
     </div>
     
     <div class="stats">
-        <h3>Statistik</h3>
+        <h3>{{ t('admin', 'statistics') }}</h3>
         <div class="stats-grid">
             <div class="stat-item">
                 <div class="stat-value" id="total-users">-</div>
-                <div class="stat-label">Användare</div>
+                <div class="stat-label">{{ t('admin', 'users') }}</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="total-submissions">-</div>
-                <div class="stat-label">Inlämningar</div>
+                <div class="stat-label">{{ t('admin', 'submissions') }}</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" id="completed-levels">-</div>
-                <div class="stat-label">Genomförda nivåer</div>
+                <div class="stat-label">{{ t('admin', 'completed_levels') }}</div>
             </div>
         </div>
     </div>
     
     <div style="margin-top: 30px; text-align: center;">
         <a href="{{ url_for('leaderboard') }}" class="btn btn-secondary">
-            📊 Visa leaderboard
+            {{ t('admin', 'view_leaderboard') }}
         </a>
     </div>
 </div>
@@ -185,6 +185,19 @@
 {% block extra_js %}
 <script>
     const API_KEY = '{{ request.headers.get("X-API-Key", "") }}';
+    const translations = {{ translations|tojson }};
+    
+    function t(category, key, ...args) {
+        let text = translations[category] && translations[category][key] ? translations[category][key] : key;
+        if (args.length > 0) {
+            try {
+                return text.replace(/\{\}/g, () => args.shift() || '');
+            } catch (e) {
+                return text;
+            }
+        }
+        return text;
+    }
     
     function startCompetition() {
         fetch('/admin/start', {
@@ -197,19 +210,19 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Tävling startad!');
+                alert(t('admin', 'alert_started'));
                 location.reload();
             } else {
-                alert('Fel: ' + data.error);
+                alert(t('admin', 'error_fetch', data.error));
             }
         })
         .catch(error => {
-            alert('Fel vid start: ' + error);
+            alert(t('admin', 'error_start', error));
         });
     }
     
     function stopCompetition() {
-        if (confirm('Är du säker på att du vill stoppa tävlingen?')) {
+        if (confirm(t('admin', 'confirm_stop'))) {
             fetch('/admin/stop', {
                 method: 'POST',
                 headers: {
@@ -220,20 +233,20 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Tävling stoppad!');
+                    alert(t('admin', 'alert_stopped'));
                     location.reload();
                 } else {
-                    alert('Fel: ' + data.error);
+                    alert(t('admin', 'error_fetch', data.error));
                 }
             })
             .catch(error => {
-                alert('Fel vid stopp: ' + error);
+                alert(t('admin', 'error_stop', error));
             });
         }
     }
     
     function setActiveCompetition(competitionId) {
-        if (confirm('Är du säker på att du vill byta till denna tävling?')) {
+        if (confirm(t('admin', 'confirm_change'))) {
             fetch('/admin/competitions', {
                 method: 'POST',
                 headers: {
@@ -245,20 +258,20 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Tävling ändrad!');
+                    alert(t('admin', 'alert_changed'));
                     location.reload();
                 } else {
-                    alert('Fel: ' + data.error);
+                    alert(t('admin', 'error_fetch', data.error));
                 }
             })
             .catch(error => {
-                alert('Fel vid byte av tävling: ' + error);
+                alert(t('admin', 'error_change', error));
             });
         }
     }
     
     function resetData() {
-        if (confirm('Är du säker på att du vill radera ALL data? Detta går inte att ångra!')) {
+        if (confirm(t('admin', 'confirm_reset'))) {
             fetch('/reset', {
                 method: 'GET',
                 headers: {
@@ -268,14 +281,14 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('All data raderad!');
+                    alert(t('admin', 'alert_reset'));
                     location.reload();
                 } else {
-                    alert('Fel: ' + data.error);
+                    alert(t('admin', 'error_fetch', data.error));
                 }
             })
             .catch(error => {
-                alert('Fel vid reset: ' + error);
+                alert(t('admin', 'error_reset', error));
             });
         }
     }
@@ -299,7 +312,7 @@
                 document.getElementById('completed-levels').textContent = completedLevels;
             })
             .catch(error => {
-                console.error('Fel vid hämtning av statistik:', error);
+                console.error('Error loading statistics:', error);
             });
     }
     

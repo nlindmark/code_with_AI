@@ -4,7 +4,7 @@
 
 {% block content %}
 <div style="max-width: 400px; margin: 0 auto;">
-    <h2 style="text-align: center; margin-bottom: 30px; color: #333;">Anmäl dig till tävlingen</h2>
+    <h2 style="text-align: center; margin-bottom: 30px; color: #333;">{{ t('login', 'title') }}</h2>
     
     {% if error %}
     <div class="alert alert-error">
@@ -14,32 +14,32 @@
     
     <form method="POST">
         <div class="form-group">
-            <label for="username">Användarnamn:</label>
+            <label for="username">{{ t('login', 'username') }}:</label>
             <input type="text" 
                    id="username" 
                    name="username" 
                    class="form-control" 
-                   placeholder="Ange ditt användarnamn"
+                   placeholder="{{ t('login', 'username_placeholder') }}"
                    required
                    autofocus>
             <small style="color: #666; font-size: 0.9em;">
-                Endast bokstäver och siffror tillåtna
+                {{ t('login', 'username_hint') }}
             </small>
         </div>
         
         <button type="submit" class="btn" style="width: 100%;">
-            Starta tävling
+            {{ t('login', 'start_competition') }}
         </button>
     </form>
     
     <div style="margin-top: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 5px;">
-        <h3 style="margin-bottom: 15px; color: #333;">Så här fungerar det:</h3>
+        <h3 style="margin-bottom: 15px; color: #333;">{{ t('login', 'how_it_works') }}</h3>
         <ol style="padding-left: 20px; color: #666;">
-            <li>Ange ditt användarnamn ovan</li>
-            <li>Lös de 5 nivåerna i ordning</li>
-            <li>Varje nivå har ett problem att lösa</li>
-            <li>Ange ditt svar i rutan</li>
-            <li>Se din ranking på leaderboard</li>
+            <li>{{ t('login', 'step1') }}</li>
+            <li>{{ t('login', 'step2') }}</li>
+            <li>{{ t('login', 'step3') }}</li>
+            <li>{{ t('login', 'step4') }}</li>
+            <li>{{ t('login', 'step5') }}</li>
         </ol>
     </div>
 </div>

@@ -8,11 +8,11 @@
     
     {% if success %}
     <div class="alert alert-success" id="success-message" style="display: block; text-align: center; font-size: 1.2em; padding: 30px;">
-        ✅ <strong>Rätt svar! Nivå {{ level_id }} klar!</strong>
+        ✅ <strong>{{ t('level', 'correct_answer', level_id) }}</strong>
         {% if next_level %}
-        <p style="margin-top: 15px; font-size: 0.9em; color: #666;">Du går vidare till nivå {{ next_level }} om 2 sekunder...</p>
+        <p style="margin-top: 15px; font-size: 0.9em; color: #666;">{{ t('level', 'next_level', next_level) }}</p>
         {% else %}
-        <p style="margin-top: 15px; font-size: 0.9em; color: #666;">Du går vidare till leaderboard om 2 sekunder...</p>
+        <p style="margin-top: 15px; font-size: 0.9em; color: #666;">{{ t('level', 'next_leaderboard') }}</p>
         {% endif %}
     </div>
     {% endif %}
@@ -25,18 +25,18 @@
     
     {% if not success %}
     <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 30px;">
-        <h3 style="margin-bottom: 15px; color: #333;">Problembeskrivning:</h3>
+        <h3 style="margin-bottom: 15px; color: #333;">{{ t('level', 'problem_description') }}</h3>
         <div style="white-space: pre-line; font-family: 'Courier New', monospace; background-color: white; padding: 15px; border-radius: 3px; border: 1px solid #ddd;">
 {{ problem.description }}
         </div>
         {% if problem.input_file %}
         <div style="margin-top: 15px; padding: 15px; background-color: #e8f5e9; border-radius: 5px; border-left: 4px solid #4caf50;">
-            <strong>📥 Input-fil:</strong>
-            <p style="margin: 10px 0; color: #666;">Ladda ner input-filen för att bearbeta den med ditt program:</p>
+            <strong>{{ t('level', 'input_file') }}</strong>
+            <p style="margin: 10px 0; color: #666;">{{ t('level', 'download_input') }}</p>
             <a href="{{ url_for('download_input_file', competition_id=competition_id, level_id=level_id, filename=problem.input_file) }}" 
                class="btn" 
                style="background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); margin-top: 10px; display: inline-block;">
-                📥 Ladda ner {{ problem.input_file }}
+                {{ t('level', 'download', problem.input_file) }}
             </a>
         </div>
         {% endif %}
@@ -44,7 +44,7 @@
     
     <form method="POST" action="{{ url_for('submit', level_id=level_id) }}">
         <div class="form-group">
-            <label for="answer">Ditt svar:</label>
+            <label for="answer">{{ t('level', 'your_answer') }}:</label>
             <input type="{{ problem.input_type }}" 
                    id="answer" 
                    name="answer" 
@@ -56,11 +56,11 @@
         
         <div style="display: flex; gap: 15px; margin-top: 30px;">
             <button type="submit" class="btn">
-                Skicka svar
+                {{ t('level', 'submit_answer') }}
             </button>
             
             <a href="{{ url_for('leaderboard') }}" class="btn btn-secondary">
-                Visa leaderboard
+                {{ t('level', 'view_leaderboard') }}
             </a>
         </div>
     </form>
@@ -71,10 +71,10 @@
                 onclick="toggleSolution()" 
                 class="btn" 
                 style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); margin-bottom: 15px;">
-            💡 Visa lösningsprogram
+            {{ t('level', 'show_solution') }}
         </button>
         <div id="solution-container" style="display: none;">
-            <h4 style="margin-bottom: 10px; color: #333;">Lösningsprogram:</h4>
+            <h4 style="margin-bottom: 10px; color: #333;">{{ t('level', 'solution_program') }}</h4>
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd; overflow-x: auto;">
                 <pre id="solution-code" style="margin: 0; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.5; color: #333;"></pre>
             </div>
@@ -88,10 +88,10 @@
                 onclick="toggleHint()" 
                 class="btn" 
                 style="background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%); margin-bottom: 15px;">
-            💡 Visa tips
+            {{ t('level', 'show_hint') }}
         </button>
         <div id="hint-container" style="display: none;">
-            <h4 style="margin-bottom: 10px; color: #333;">Tips:</h4>
+            <h4 style="margin-bottom: 10px; color: #333;">{{ t('level', 'hint') }}</h4>
             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
                 <p style="margin: 0; color: #333;">{{ problem.hint }}</p>
             </div>
@@ -114,6 +114,20 @@
 
 {% if problem.solution_file %}
 <script>
+    const translations = {{ translations|tojson }};
+    
+    function t(category, key, ...args) {
+        let text = translations[category] && translations[category][key] ? translations[category][key] : key;
+        if (args.length > 0) {
+            try {
+                return text.replace(/\{\}/g, () => args.shift() || '');
+            } catch (e) {
+                return text;
+            }
+        }
+        return text;
+    }
+    
     let solutionLoaded = false;
     let solutionVisible = false;
     
@@ -126,7 +140,7 @@
             fetch('{{ url_for("get_solution", competition_id=competition_id, level_id=level_id) }}')
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Kunde inte ladda lösningen');
+                        throw new Error(t('level', 'error_load_solution'));
                     }
                     return response.text();
                 })
@@ -136,7 +150,7 @@
                     showSolution();
                 })
                 .catch(error => {
-                    document.getElementById('solution-code').textContent = 'Fel vid laddning av lösning: ' + error.message;
+                    document.getElementById('solution-code').textContent = t('level', 'error_load_solution') + ': ' + error.message;
                     showSolution();
                 });
         } else {
@@ -151,13 +165,13 @@
     
     function showSolution() {
         document.getElementById('solution-container').style.display = 'block';
-        document.getElementById('show-solution-btn').textContent = '🙈 Dölj lösningsprogram';
+        document.getElementById('show-solution-btn').textContent = t('level', 'hide_solution');
         solutionVisible = true;
     }
     
     function hideSolution() {
         document.getElementById('solution-container').style.display = 'none';
-        document.getElementById('show-solution-btn').textContent = '💡 Visa lösningsprogram';
+        document.getElementById('show-solution-btn').textContent = t('level', 'show_solution');
         solutionVisible = false;
     }
 </script>
@@ -165,6 +179,20 @@
 
 {% if problem.hint %}
 <script>
+    const translations = {{ translations|tojson }};
+    
+    function t(category, key, ...args) {
+        let text = translations[category] && translations[category][key] ? translations[category][key] : key;
+        if (args.length > 0) {
+            try {
+                return text.replace(/\{\}/g, () => args.shift() || '');
+            } catch (e) {
+                return text;
+            }
+        }
+        return text;
+    }
+    
     let hintVisible = false;
     
     function toggleHint() {
@@ -180,13 +208,13 @@
     
     function showHint() {
         document.getElementById('hint-container').style.display = 'block';
-        document.getElementById('show-hint-btn').textContent = '🙈 Dölj tips';
+        document.getElementById('show-hint-btn').textContent = t('level', 'hide_hint');
         hintVisible = true;
     }
     
     function hideHint() {
         document.getElementById('hint-container').style.display = 'none';
-        document.getElementById('show-hint-btn').textContent = '💡 Visa tips';
+        document.getElementById('show-hint-btn').textContent = t('level', 'show_hint');
         hintVisible = false;
     }
 </script>

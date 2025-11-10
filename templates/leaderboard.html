@@ -69,17 +69,17 @@
 {% endblock %}
 
 {% block content %}
-<h2 style="text-align: center; margin-bottom: 30px; color: #333;">🏆 Leaderboard</h2>
+<h2 style="text-align: center; margin-bottom: 30px; color: #333;">🏆 {{ t('leaderboard', 'title') }}</h2>
 
 {% if leaderboard %}
 <table class="leaderboard-table">
     <thead>
         <tr>
-            <th class="rank">#</th>
-            <th>Användare</th>
-            <th>Nivå</th>
-            <th>Total tid</th>
-            <th>Detaljer</th>
+            <th class="rank">{{ t('leaderboard', 'rank') }}</th>
+            <th>{{ t('leaderboard', 'user') }}</th>
+            <th>{{ t('leaderboard', 'level') }}</th>
+            <th>{{ t('leaderboard', 'total_time') }}</th>
+            <th>{{ t('leaderboard', 'details') }}</th>
         </tr>
     </thead>
     <tbody>
@@ -100,11 +100,10 @@
             <td>
                 {% for level, data in entry.levels.items() %}
                     <small style="color: #666;">
-                        Nivå {{ level }}: 
                         {% if data.ms is defined and data.ms is not none %}
-                            {{ (data.ms / 1000)|int }}s
+                            {{ t('leaderboard', 'level_detail', level, (data.ms / 1000)|int ~ 's') }}
                         {% else %}
-                            ✓
+                            {{ t('leaderboard', 'level_detail', level, '✓') }}
                         {% endif %}
                     </small>
                     {% if not loop.last %}<br>{% endif %}
@@ -116,16 +115,16 @@
 </table>
 {% else %}
 <div class="no-data">
-    <h3>Inga resultat ännu</h3>
-    <p>Börja lösa nivåerna för att se din ranking här!</p>
+    <h3>{{ t('leaderboard', 'no_results') }}</h3>
+    <p>{{ t('leaderboard', 'start_solving') }}</p>
     <a href="{{ url_for('competition_intro') }}" class="btn" style="margin-top: 20px;">
-        📖 Läs tävlingsintroduktion
+        {{ t('leaderboard', 'read_intro') }}
     </a>
 </div>
 {% endif %}
 
 <div class="status" id="status">
-    Uppdateras automatiskt var 5:e sekund
+    {{ t('leaderboard', 'auto_update') }}
 </div>
 {% endblock %}
 
@@ -133,6 +132,19 @@
 <script>
     // Max level från servern
     const maxLevel = {{ max_level }};
+    const translations = {{ translations|tojson }};
+    
+    function t(category, key, ...args) {
+        let text = translations[category] && translations[category][key] ? translations[category][key] : key;
+        if (args.length > 0) {
+            try {
+                return text.replace(/\{\}/g, () => args.shift() || '');
+            } catch (e) {
+                return text;
+            }
+        }
+        return text;
+    }
     
     // Funktion för att formatera tid i millisekunder till läsbart format
     function formatTime(ms) {
@@ -153,7 +165,7 @@
             const display = (levelData.ms !== undefined && levelData.ms !== null) 
                 ? Math.round(levelData.ms / 1000) + 's' 
                 : '✓';
-            return `<small style="color: #666;">Nivå ${level}: ${display}</small>`;
+            return `<small style="color: #666;">${t('leaderboard', 'level_detail', level, display)}</small>`;
         }).join('<br>');
     }
 
@@ -201,16 +213,15 @@
                 
                 const statusEl = document.getElementById('status');
                 if (statusEl) {
-                    statusEl.textContent = 
-                        `Senast uppdaterad: ${new Date().toLocaleTimeString('sv-SE')}`;
+                    const locale = translations.base && translations.base.current_lang === 'sv' ? 'sv-SE' : 'en-US';
+                    statusEl.textContent = t('leaderboard', 'last_updated', new Date().toLocaleTimeString(locale));
                 }
             })
             .catch(error => {
-                console.error('Fel vid hämtning av leaderboard:', error);
+                console.error(t('leaderboard', 'error_console'), error);
                 const statusEl = document.getElementById('status');
                 if (statusEl) {
-                    statusEl.textContent = 
-                        'Kunde inte hämta leaderboard. Kontrollera att servern körs.';
+                    statusEl.textContent = t('leaderboard', 'error_fetch');
                 }
             });
     }

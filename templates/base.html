@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="{{ current_lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -168,8 +168,15 @@
 <body>
     <div class="header">
         <div class="container">
-            <h1>🏆 Code with AI</h1>
-            <p>Kodningstävling{% if max_level > 0 %} med {{ max_level }} progressivt svårare nivåer{% endif %}</p>
+            <h1>🏆 {{ t('base', 'title') }}</h1>
+            <p>{% if max_level > 0 %}{{ t('base', 'subtitle_with_levels', max_level) }}{% else %}{{ t('base', 'subtitle') }}{% endif %}</p>
+            <div style="margin-top: 15px;">
+                <a href="{{ url_for('set_language', lang='sv') }}" 
+                   style="color: white; text-decoration: none; padding: 5px 10px; {% if current_lang == 'sv' %}background: rgba(255,255,255,0.2); border-radius: 3px;{% endif %}">🇸🇪 SV</a>
+                <span style="color: white; margin: 0 5px;">|</span>
+                <a href="{{ url_for('set_language', lang='en') }}" 
+                   style="color: white; text-decoration: none; padding: 5px 10px; {% if current_lang == 'en' %}background: rgba(255,255,255,0.2); border-radius: 3px;{% endif %}">🇬🇧 EN</a>
+            </div>
         </div>
     </div>
     
@@ -177,16 +184,16 @@
     <div class="nav">
         <div class="container">
             <ul>
-                <li><a href="{{ url_for('leaderboard') }}">Leaderboard</a></li>
+                <li><a href="{{ url_for('leaderboard') }}">{{ t('nav', 'leaderboard') }}</a></li>
                 {% if competition_id %}
-                <li><a href="{{ url_for('competition_intro') }}">Tävlingsinfo</a></li>
+                <li><a href="{{ url_for('competition_intro') }}">{{ t('nav', 'competition_info') }}</a></li>
                 {% endif %}
                 {% if max_level > 0 %}
                     {% for level_num in range(1, max_level + 1) %}
-                        <li><a href="{{ url_for('level', level_id=level_num) }}">Nivå {{ level_num }}</a></li>
+                        <li><a href="{{ url_for('level', level_id=level_num) }}">{{ t('nav', 'level') }} {{ level_num }}</a></li>
                     {% endfor %}
                 {% endif %}
-                <li><a href="{{ url_for('logout') }}">Logga ut ({{ session.username }})</a></li>
+                <li><a href="{{ url_for('logout') }}">{{ t('nav', 'logout_with_user', session.username) }}</a></li>
             </ul>
         </div>
     </div>
@@ -199,7 +206,7 @@
     </div>
     
     <div class="footer">
-        <p>&copy; 2024 Code with AI Competition Platform</p>
+        <p>{{ t('base', 'footer') }}</p>
     </div>
     
     {% block extra_js %}{% endblock %}

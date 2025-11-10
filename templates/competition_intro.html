@@ -138,61 +138,61 @@
     {% if summary %}
         {% if summary.overview %}
         <div class="section">
-            <h2>📋 Översikt</h2>
+            <h2>{{ t('competition_intro', 'overview') }}</h2>
             <div class="markdown-content">{{ summary.overview | markdown | safe }}</div>
         </div>
         {% endif %}
         
         {% if summary.story %}
         <div class="section story-section">
-            <h2>📖 Berättelse</h2>
+            <h2>{{ t('competition_intro', 'story') }}</h2>
             <div class="markdown-content">{{ summary.story | markdown | safe }}</div>
         </div>
         {% endif %}
         
         {% if summary.level_progression %}
         <div class="section">
-            <h2>🎯 Nivåprogression</h2>
+            <h2>{{ t('competition_intro', 'level_progression') }}</h2>
             <div class="markdown-content">{{ summary.level_progression | markdown | safe }}</div>
         </div>
         {% endif %}
         
         {% if summary.learning_objectives %}
         <div class="section">
-            <h2>🎓 Lärandemål</h2>
+            <h2>{{ t('competition_intro', 'learning_objectives') }}</h2>
             <div class="markdown-content">{{ summary.learning_objectives | markdown | safe }}</div>
         </div>
         {% endif %}
         
         {% if summary.difficulty_curve %}
         <div class="section">
-            <h2>⭐ Svårighetsgrad</h2>
+            <h2>{{ t('competition_intro', 'difficulty_curve') }}</h2>
             <div class="markdown-content">{{ summary.difficulty_curve | markdown | safe }}</div>
         </div>
         {% endif %}
         
         {% if summary.context %}
         <div class="section">
-            <h2>🌍 Kontext</h2>
+            <h2>{{ t('competition_intro', 'context') }}</h2>
             <div class="markdown-content">{{ summary.context | markdown | safe }}</div>
         </div>
         {% endif %}
         
         {% if summary.estimated_time %}
         <div class="section">
-            <h2>⏱️ Beräknad tid</h2>
+            <h2>{{ t('competition_intro', 'estimated_time') }}</h2>
             <div class="markdown-content">{{ summary.estimated_time | markdown | safe }}</div>
         </div>
         {% endif %}
     {% else %}
         <div class="section">
-            <p>Ingen tävlingsinformation tillgänglig.</p>
+            <p>{{ t('competition_intro', 'no_info') }}</p>
         </div>
     {% endif %}
     
     <div class="start-button-container">
         <a href="{{ url_for('level', level_id=1) }}" class="btn">
-            🚀 Starta tävlingen
+            {{ t('competition_intro', 'start_competition') }}
         </a>
     </div>
 </div>
