@@ -1,9 +1,0 @@
-{
-  "title": "Level 1: CAN Bus Signal Decoder",
-  "description": "You're working on automotive diagnostics software. Parse this CAN message and extract the vehicle speed.\n\nCAN Message: {{input}}\n\nThe speed is encoded in bytes 3-4 (big-endian, unit: 0.01 km/h).\nWhat is the vehicle speed in km/h?",
-  "input_type": "number",
-  "placeholder": "Enter speed in km/h",
-  "expected_answer": "87.5",
-  "input_file": "can_message.txt",
-  "hint": "CAN messages are in hexadecimal. Convert bytes 3-4 to decimal, then multiply by 0.01 to get km/h."
-}

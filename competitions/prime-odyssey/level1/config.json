@@ -1,9 +1,0 @@
-{
-  "title": "Level 1: Is It Prime?",
-  "description": "Let's start with the basics. A prime number is a natural number greater than 1 that has no positive divisors other than 1 and itself.\n\nGiven the number: {{input}}\n\nIs this number prime? Answer 'yes' or 'no'.",
-  "input_type": "text",
-  "placeholder": "yes or no",
-  "expected_answer": "yes",
-  "input_file": "number.txt",
-  "hint": "Try dividing the number by all integers from 2 up to the square root of the number. If any divide evenly, it's not prime."
-}

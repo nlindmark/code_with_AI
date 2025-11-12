@@ -1,9 +1,0 @@
-{
-  "title": "Level 2: LoRaWAN Sensor Analysis",
-  "description": "You're managing a smart city sensor network using LoRaWAN technology. Analyze the sensor data below and find the average temperature reading.\n\nSensor Data:\n{{input}}\n\nEach line contains: SensorID, Temperature(°C), RSSI(dBm), Battery(%)\nWhat is the average temperature across all sensors? (Round to 1 decimal place)",
-  "input_type": "number",
-  "placeholder": "Enter average temperature",
-  "expected_answer": "18.7",
-  "input_file": "sensor_data.csv",
-  "hint": "Sum all temperature values and divide by the number of sensors. Don't forget to round to 1 decimal place."
-}

@@ -1,9 +1,0 @@
-{
-  "title": "Level 4: Prime Factorization",
-  "description": "Every composite number can be expressed as a unique product of prime numbers - this is called prime factorization.\n\nFor example: 60 = 2 × 2 × 3 × 5\n\nFind the prime factorization of: {{input}}\n\nWhat is the sum of all the prime factors (counting duplicates)?\n\nFor example, for 60: 2 + 2 + 3 + 5 = 12",
-  "input_type": "number",
-  "placeholder": "Enter the sum",
-  "expected_answer": "30",
-  "input_file": "composite.txt",
-  "hint": "Divide by the smallest prime (2) as many times as possible, then try 3, then 5, and so on. Keep track of all prime factors and sum them."
-}

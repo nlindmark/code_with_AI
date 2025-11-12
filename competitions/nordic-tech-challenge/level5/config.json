@@ -1,9 +1,0 @@
-{
-  "title": "Level 5: Nordic Winter Battery Degradation",
-  "description": "You're analyzing EV battery performance in Nordic winter conditions. Given the test data below, calculate the total energy loss percentage.\n\nBattery Test Data:\n{{input}}\n\nFormat: TestDay, TempC, CapacityKWh, OriginalCapacityKWh\nCalculate: ((Sum of losses) / (Sum of original capacities)) * 100\nRound to 1 decimal place.",
-  "input_type": "number",
-  "placeholder": "Enter total energy loss %",
-  "expected_answer": "12.3",
-  "input_file": "battery_test.csv",
-  "hint": "For each test, loss = OriginalCapacity - CurrentCapacity. Sum all losses, sum all original capacities, then calculate the percentage."
-}

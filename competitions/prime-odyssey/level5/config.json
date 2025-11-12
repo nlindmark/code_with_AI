@@ -1,9 +1,0 @@
-{
-  "title": "Level 5: Twin Primes",
-  "description": "Twin primes are pairs of prime numbers that differ by exactly 2. For example: (3, 5), (5, 7), (11, 13), (17, 19).\n\nGiven this range: {{input}}\n\nHow many twin prime pairs exist where BOTH primes are within this range (inclusive)?\n\nNote: Count pairs, not individual primes. For example, (3, 5), (5, 7), (11, 13) would be 3 pairs.",
-  "input_type": "number",
-  "placeholder": "Enter the number of twin prime pairs",
-  "expected_answer": "8",
-  "input_file": "range.txt",
-  "hint": "Generate all primes in the range first. Then check consecutive primes to see if they differ by exactly 2. Be careful: (3,5) and (5,7) are different pairs even though they share the number 5."
-}
