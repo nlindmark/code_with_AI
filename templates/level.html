@@ -64,22 +64,6 @@
             </a>
         </div>
     </form>
-    
-    {% if problem.solution_file %}
-    <div style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border-radius: 5px; border-left: 4px solid #ffc107;">
-        <button id="show-solution-btn" 
-                onclick="toggleSolution()" 
-                class="btn" 
-                style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); margin-bottom: 15px;">
-            {{ t('level', 'show_solution') }}
-        </button>
-        <div id="solution-container" style="display: none;">
-            <h4 style="margin-bottom: 10px; color: #333;">{{ t('level', 'solution_program') }}</h4>
-            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd; overflow-x: auto;">
-                <pre id="solution-code" style="margin: 0; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.5; color: #333;"></pre>
-            </div>
-        </div>
-    </div>
     {% endif %}
     
     {% if problem.hint %}
@@ -98,6 +82,22 @@
         </div>
     </div>
     {% endif %}
+    
+    {% if problem.solution_file %}
+    <div style="margin-top: 30px; padding: 15px; background-color: #fff3cd; border-radius: 5px; border-left: 4px solid #ffc107;">
+        <button id="show-solution-btn" 
+                onclick="toggleSolution()" 
+                class="btn" 
+                style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); margin-bottom: 15px;">
+            {{ t('level', 'show_solution') }}
+        </button>
+        <div id="solution-container" style="display: none;">
+            <h4 style="margin-bottom: 10px; color: #333;">{{ t('level', 'solution_program') }}</h4>
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #ddd; overflow-x: auto;">
+                <pre id="solution-code" style="margin: 0; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.5; color: #333;"></pre>
+            </div>
+        </div>
+    </div>
     {% endif %}
 </div>
 {% endblock %}
@@ -109,6 +109,49 @@
     setTimeout(function() {
         window.location.href = '{{ next_url }}';
     }, 2000);
+</script>
+{% endif %}
+
+{% if problem.hint %}
+<script>
+    const translations = {{ translations|tojson }};
+    
+    function t(category, key, ...args) {
+        let text = translations[category] && translations[category][key] ? translations[category][key] : key;
+        if (args.length > 0) {
+            try {
+                return text.replace(/\{\}/g, () => args.shift() || '');
+            } catch (e) {
+                return text;
+            }
+        }
+        return text;
+    }
+    
+    let hintVisible = false;
+    
+    function toggleHint() {
+        const container = document.getElementById('hint-container');
+        const btn = document.getElementById('show-hint-btn');
+        
+        if (hintVisible) {
+            hideHint();
+        } else {
+            showHint();
+        }
+    }
+    
+    function showHint() {
+        document.getElementById('hint-container').style.display = 'block';
+        document.getElementById('show-hint-btn').textContent = t('level', 'hide_hint');
+        hintVisible = true;
+    }
+    
+    function hideHint() {
+        document.getElementById('hint-container').style.display = 'none';
+        document.getElementById('show-hint-btn').textContent = t('level', 'show_hint');
+        hintVisible = false;
+    }
 </script>
 {% endif %}
 
@@ -173,49 +216,6 @@
         document.getElementById('solution-container').style.display = 'none';
         document.getElementById('show-solution-btn').textContent = t('level', 'show_solution');
         solutionVisible = false;
-    }
-</script>
-{% endif %}
-
-{% if problem.hint %}
-<script>
-    const translations = {{ translations|tojson }};
-    
-    function t(category, key, ...args) {
-        let text = translations[category] && translations[category][key] ? translations[category][key] : key;
-        if (args.length > 0) {
-            try {
-                return text.replace(/\{\}/g, () => args.shift() || '');
-            } catch (e) {
-                return text;
-            }
-        }
-        return text;
-    }
-    
-    let hintVisible = false;
-    
-    function toggleHint() {
-        const container = document.getElementById('hint-container');
-        const btn = document.getElementById('show-hint-btn');
-        
-        if (hintVisible) {
-            hideHint();
-        } else {
-            showHint();
-        }
-    }
-    
-    function showHint() {
-        document.getElementById('hint-container').style.display = 'block';
-        document.getElementById('show-hint-btn').textContent = t('level', 'hide_hint');
-        hintVisible = true;
-    }
-    
-    function hideHint() {
-        document.getElementById('hint-container').style.display = 'none';
-        document.getElementById('show-hint-btn').textContent = t('level', 'show_hint');
-        hintVisible = false;
     }
 </script>
 {% endif %}
