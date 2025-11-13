@@ -1,0 +1,8 @@
+{
+  "title": "Level 3: The Coupling Anomaly",
+  "description": "**CRITICAL DISCOVERY - DAY 3**\n**Priority**: HIGH\n**System**: Coupling Safety Module (CSM)\n\nThe investigation has taken a concerning turn. We've discovered anomalies in the VBG coupling lock sensor data.\n\nThe CSM broadcasts **DBLLCKSNSR** messages on CAN ID **0xCF06523** (PGN 61541). This sensor is VBG's primary safety mechanism - it verifies that the trailer is securely locked to the truck's coupling before allowing any movement.\n\nAccording to the DBC specification, the `DblLckSnsrRprtdSts` signal (bits 0-2 of byte 0) can report:\n- **0** = Unlocked\n- **1** = Locked\n- **2** = Not present\n- **3** = Undefined  ⚠️\n- **4** = Inhibited\n\nIn normal operation, the sensor should consistently report either \"Not present\" (value 2) when disconnected, or \"Locked\" (value 1) when the trailer is coupled.\n\nHowever, during the incident timeframe, the sensor repeatedly reported **\"Undefined\"** (value 3) - a failure state that should never occur in production.\n\n**Your task: How many times did the coupling sensor report the anomalous \"Undefined\" (0x03) state?**\n\n*This will help us understand if the coupling experienced mechanical stress or sensor failure during the jack-knifing event.*\n\n*Using the same CAN log file from previous levels.*",
+  "input_type": "number",
+  "placeholder": "Enter count of 'Undefined' status messages",
+  "expected_answer": "93",
+  "hint": "Look for CAN ID 0xCF06523 (DBLLCKSNSR). The sensor status is in the first data byte. Count messages where byte 0 equals 0x03 (Undefined state)."
+}

@@ -1,0 +1,8 @@
+{
+  "title": "Level 2: The Warning Signs",
+  "description": "**ANALYSIS LOG - DAY 2**\n**Analyst**: Senior Investigator Team\n**Focus**: Jack-Knifing Detection System\n\nExcellent work establishing the data scope. Now we need to understand VBG's jack-knifing prevention system.\n\nThe VBG TE system uses CAN ID **0xCF07731** (PGN 61548) to broadcast **JCKKNFNGSTS** messages - Jack-Knifing Status updates from the DSM (Drawbar Stability Module). This is one of our most critical safety features.\n\nAccording to the DBC specification:\n- Byte 6 bit 0: `JckKnfngSts` (0 = Not Active, 1 = Active)\n- Byte 0-1: Angle data (when system is active)\n\nInitially, this message shows all zeros (00 00 00 00 00 00 00 00) indicating the system is in standby mode. However, when the drawbar angle exceeds safe thresholds, the system activates and starts broadcasting real-time angle measurements.\n\n**Your task: Count how many CAN messages with ID 0xCF07731 contain NON-ZERO data (indicating the jack-knifing detection system was actively monitoring critical angles).**\n\nThis will tell us how long the system was in alarm state.\n\n*Using the same CAN log file from Level 1.*",
+  "input_type": "number",
+  "placeholder": "Enter count of active jack-knifing messages",
+  "expected_answer": "543",
+  "hint": "Look for messages with CAN ID 0xCF07731. Count only those where the data bytes are NOT all zeros (00 00 00 00 00 00 00 00). The system activates when it detects dangerous angles."
+}

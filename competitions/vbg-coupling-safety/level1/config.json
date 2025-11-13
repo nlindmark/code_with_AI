@@ -1,0 +1,9 @@
+{
+  "title": "Level 1: The Incident Report",
+  "description": "**INCIDENT REPORT - VBG GROUP AB**\n**Date**: 2025-03-11\n**Location**: E6 Highway, Göteborg\n**Status**: CRITICAL - Under Investigation\n\nAt 11:38:07 this morning, our Nordic Fleet Management received an automatic distress signal from truck registration SE-TRL-8847, a Volvo FH16 hauling a 40-ton refrigerated trailer equipped with our latest VBG TE (Trailer Eyes) intelligent coupling system.\n\nThe driver reported a sudden, violent jack-knifing event during a routine highway merge. Thanks to VBG's advanced coupling lock and angle monitoring system, the trailer remained securely attached, preventing a catastrophic multi-vehicle collision. However, the incident triggered multiple safety alarms.\n\nYou've been assigned as the lead forensic analyst to investigate the CAN bus data log recovered from the vehicle's BCM (Body Control Module), CSM (Coupling Safety Module), and DSM (Drawbar Stability Module).\n\nYour task begins with a basic analysis:\n\n**Using the attached CAN log file ({{input}}), determine how many TOTAL CAN messages were recorded during this incident.**\n\nThis will establish the scope of data we're working with.",
+  "input_type": "number",
+  "placeholder": "Enter total number of CAN messages",
+  "expected_answer": "38407",
+  "input_file": "VBG_CAN_Log__1_.log",
+  "hint": "Count all lines that contain actual CAN messages (Rx lines with hex data). The log has a header section before the actual CAN messages start."
+}
