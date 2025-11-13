@@ -433,7 +433,9 @@ def get_solution(competition_id, level_id):
     
     # Konstruera sökväg till solution.py (use folder_name from competition)
     from pathlib import Path
-    competitions_dir = Path("competitions")
+    # Use absolute path based on the script's location to avoid working directory issues
+    base_dir = Path(__file__).parent.absolute()
+    competitions_dir = base_dir / "competitions"
     solution_path = competitions_dir / competition["folder_name"] / f"level{level_id}" / "solution.py"
     
     # Säkerhetskontroll: Verifiera att filen verkligen finns på rätt plats
@@ -442,7 +444,7 @@ def get_solution(competition_id, level_id):
     
     # Verifiera att filen är inom competitions-katalogen (prevent path traversal)
     try:
-        solution_path.resolve().relative_to(Path("competitions").resolve())
+        solution_path.resolve().relative_to(competitions_dir.resolve())
     except ValueError:
         return t('errors', 'invalid_path'), 403
     

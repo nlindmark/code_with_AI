@@ -112,8 +112,9 @@
 </script>
 {% endif %}
 
-{% if problem.hint %}
+{% if problem.hint or problem.solution_file %}
 <script>
+    // Declare translations and t() function once for both hint and solution
     const translations = {{ translations|tojson }};
     
     function t(category, key, ...args) {
@@ -127,7 +128,11 @@
         }
         return text;
     }
-    
+</script>
+{% endif %}
+
+{% if problem.hint %}
+<script>
     let hintVisible = false;
     
     function toggleHint() {
@@ -157,20 +162,6 @@
 
 {% if problem.solution_file %}
 <script>
-    const translations = {{ translations|tojson }};
-    
-    function t(category, key, ...args) {
-        let text = translations[category] && translations[category][key] ? translations[category][key] : key;
-        if (args.length > 0) {
-            try {
-                return text.replace(/\{\}/g, () => args.shift() || '');
-            } catch (e) {
-                return text;
-            }
-        }
-        return text;
-    }
-    
     let solutionLoaded = false;
     let solutionVisible = false;
     
@@ -205,6 +196,9 @@
             }
         }
     }
+    
+    // Make sure function is available globally
+    window.toggleSolution = toggleSolution;
     
     function showSolution() {
         document.getElementById('solution-container').style.display = 'block';
